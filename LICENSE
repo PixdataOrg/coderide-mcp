@@ -1,0 +1,92 @@
+CodeRide MCP Software License
+Version 1.0.0, May 2025
+
+Initial Copyright (c) 2025 Pix Srl
+All rights reserved.
+
+OWNERSHIP AND TRANSFER RIGHTS:
+1. The copyright holder reserves the right to transfer all rights, title, and
+   interest in this Software to any entity, including but not limited to a 
+   company or corporation.
+2. Such transfer shall not affect existing license grants.
+3. Upon transfer, new versions of the Software may be released under the new
+   copyright holder's name.
+4. Transfer of ownership will be announced through official channels.
+
+LICENSE TERMS AND CONDITIONS:
+
+1. FREE TIER LICENSE TERMS:
+The Software may be used free of charge under the "Free Tier" which includes:
+a) Basic MCP implementation capabilities
+b) Access to CodeRide task management integration
+c) Community support
+d) Single command installation for VS Code extension
+
+2. PREMIUM FEATURES:
+The following features require a valid paid subscription:
+a) Advanced context pack generator
+b) Team collaboration features
+c) Multi-AI provider support
+d) Priority support
+e) Access to premium task templates
+f) Enterprise-level permission controls
+g) Any additional features designated as premium
+
+3. RESTRICTIONS:
+Users may not:
+a) Copy, modify, or distribute the Software beyond what is explicitly permitted
+   in the Free Tier
+b) Reverse engineer, decompile, or disassemble the Software
+c) Remove or alter any proprietary notices or marks
+d) Sell, lease, or sublicense the Software
+e) Use the Software to create competing products
+f) Bypass any technical measures that control access to premium features
+
+4. SUBSCRIPTION TERMS:
+a) Premium features are available only with a valid, active subscription
+b) Subscription terms may be modified with 30 days notice
+c) Billing and payment terms are specified in the subscription agreement
+d) Subscriptions may be terminated for violation of these terms
+
+5. NO WARRANTY:
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+6. LIMITATION OF LIABILITY:
+IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY 
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
+
+7. TERMINATION:
+a) This license automatically terminates upon any breach of its terms
+b) Upon termination, you must cease all use of the Software
+c) Sections 5, 6, and 7 survive termination
+
+8. UPDATES AND MODIFICATIONS:
+a) The copyright holder may release updates to the Software
+b) Updates may include new features, bug fixes, or changes to existing features
+c) Some updates may be restricted to paid subscription tiers
+d) Users are not entitled to refunds based on feature changes
+
+9. PRIVACY AND DATA COLLECTION:
+a) The Software may collect usage data and metrics
+b) Data collection and use is governed by our Privacy Policy
+c) Premium features may involve additional data processing
+
+10. GOVERNING LAW AND JURISDICTION:
+This license shall be governed by and construed in accordance with the laws 
+of Italy. Any disputes shall be resolved in the courts of Turin, Italy.
+
+11. CHANGES TO LICENSE TERMS:
+a) The copyright holder reserves the right to update these license terms
+b) Changes will be announced 30 days in advance
+c) Continued use of the Software constitutes acceptance of updated terms
+d) If you do not agree to updated terms, you must discontinue use
+
+For current subscription plans and full terms of service, visit: 
+https://coderide.ai/
+
+Contact: f.neri@pixdata.io
+
+Note: This license applies to the CodeRide MCP implementation and all associated 
+components. This proprietary license is effective as of May 1, 2025.
