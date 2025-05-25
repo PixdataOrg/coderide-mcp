@@ -1,4 +1,4 @@
-# CodeRide MCP v0.1.0
+# CodeRide MCP v0.2.0
 
 A Model Context Protocol (MCP) server implementation that bridges AI coding agents with the CodeRide task management system. This integration addresses the inherent limitations of AI systems by providing structured context, external memory, and standardized communication channels between human developers and AI assistants.
 
@@ -13,10 +13,12 @@ This implementation serves as the communication layer for CodeRide, allowing AI 
 
 ## Features
 
-- **get_project**: Find projects by slug, name, or description
-- **get_task**: Retrieve tasks by project slug or task number with status filtering
-- **update_task**: Update task descriptions and status
+- **get_task**: Retrieve tasks by task number with workspace-scoped authentication
+- **update_task**: Update task descriptions and status using task numbers
+- **get_prompt**: Get task prompts and instructions for AI agents
+- **get_project**: Find projects by slug within the authenticated workspace
 - **update_project**: Update project knowledge graph and structure diagram
+- **start_project**: Get the first task of a project to begin work
 - **Compact JSON**: All responses use compact JSON format to minimize token usage
 
 ## Technical Stack
@@ -48,7 +50,7 @@ This implementation serves as the communication layer for CodeRide, allowing AI 
 
 4. Update the `.env` file with your CodeRide API credentials:
    ```
-   CODERIDE_API_URL=http://localhost:3000/api/coderide
+   CODERIDE_API_URL=http://localhost:1337
    CODERIDE_API_KEY=your_api_key_here
    ```
 
@@ -80,7 +82,7 @@ To use this server with AI coding agents, add it to your MCP configuration:
       "command": "node",
       "args": ["/path/to/coderide-mcp/dist/index.js"],
       "env": {
-        "CODERIDE_API_URL": "http://localhost:3000/api/coderide",
+        "CODERIDE_API_URL": "http://localhost:1337",
         "CODERIDE_API_KEY": "your_api_key_here"
       },
       "disabled": false,
@@ -90,51 +92,44 @@ To use this server with AI coding agents, add it to your MCP configuration:
 }
 ```
 
-## Available Tools
+## MCP Inspector
 
-### get_project
+The MCP Inspector is a tool provided by the Model Context Protocol that allows you to test and interact with the CodeRide MCP server. It provides a user-friendly interface to:
 
-Retrieves project details by slug, name, or description.
+- Inspect available tools and their schemas
+- Test tool calls with different parameters
+- View responses and debug issues
 
-**Input Schema:**
-```json
-{
-  "workspaceId": "Workspace ID from CodeRide",
-  "slug": "optional-project-slug",
-  "name": "optional-project-name",
-  "description": "optional-search-text"
-}
+### Running the MCP Inspector
+
+We provide a simple script to run the MCP Inspector with the correct settings:
+
+```bash
+node test/run-mcp-inspector.js
 ```
+
+This will:
+- Create a temporary settings file
+- Install and run the MCP Inspector
+- Connect to the CodeRide MCP server
+- Clean up when you exit
+
+For more detailed information about using the MCP Inspector with CodeRide, see the [MCP Inspector documentation](docs/mcp-inspector.md).
+
+## Available Tools
 
 ### get_task
 
-Retrieves tasks either by project slug or task number.
+Retrieves tasks by task number within the authenticated workspace.
 
 **Input Schema:**
 ```json
 {
-  "workspaceId": "Workspace ID from CodeRide",
-  "slug": "project-slug",
-  "number": "task-number",
+  "number": "task-number (e.g., 'TCA-3')",
   "status": "to-do|in-progress|completed",
   "agent": "optional-agent-identifier",
   "limit": 10,
   "offset": 0
-}
-```
-
-**Examples:**
-```json
-// Get all tasks for a project
-{
-  "slug": "ABC",
-  "status": "to-do",
-  "limit": 20
-}
-
-// Get a specific task by number
-{
-  "number": "ABC-1"
 }
 ```
 
@@ -145,10 +140,34 @@ Updates an existing task's description and/or status.
 **Input Schema:**
 ```json
 {
-  "workspaceId": "Workspace ID from CodeRide",
   "number": "task-number-identifier",
   "description": "updated-task-description",
   "status": "to-do|in-progress|completed"
+}
+```
+
+### get_prompt
+
+Retrieves task prompt and instructions for AI agents.
+
+**Input Schema:**
+```json
+{
+  "slug": "project-slug (e.g., 'TCA')",
+  "number": "task-number (e.g., 'TCA-3')"
+}
+```
+
+### get_project
+
+Retrieves project details by slug within the authenticated workspace.
+
+**Input Schema:**
+```json
+{
+  "slug": "project-slug",
+  "name": "optional-project-name",
+  "description": "optional-search-text"
 }
 ```
 
@@ -159,7 +178,6 @@ Updates a project's knowledge graph and structure diagram.
 **Input Schema:**
 ```json
 {
-  "workspaceId": "Workspace ID from CodeRide",
   "slug": "project-slug-identifier",
   "project_knowledge": {
     "key": "value",
@@ -171,20 +189,45 @@ Updates a project's knowledge graph and structure diagram.
 }
 ```
 
+### start_project
+
+Retrieves the first task of a project to begin work.
+
+**Input Schema:**
+```json
+{
+  "slug": "project-slug (e.g., 'TCA')"
+}
+```
+
 ## Response Format
 
 All responses from the CodeRide MCP server are returned in compact JSON format to minimize token usage when communicating with AI agents. This reduces the context window consumption while preserving all data.
 
 **Example Response:**
 ```json
-{"success":true,"count":1,"tasks":[{"number":"CFW-2","title":"API Integration","description":"Implement API client and integration, ensuring proper connection with the CodeRide API.","status":"to-do","priority":"high","agent":"backend_specialist","agent_prompt":"You are a Backend Specialist with expertise in API integrations. Your task is to implement the API integration layer for the CodeRide system.","context":{"next_tasks":[{"title":"AI Worker Bindings Setup","number":"CFW-3","status":"to-do"}],"requirements":{"functional":["Connect to CodeRide API","Implement data fetching methods","Create utility functions for API operations"],"non_functional":["Secure credential management","Efficient error handling","Proper type definitions"]},"previous_tasks":[{"title":"Project Setup and Environment Configuration","number":"CFW-1","status":"completed"}],"project_summary":"Implementation of CodeRide API capabilities for CodeRide MCP, featuring a multi-agent architecture"},"instructions":{"steps":["Create an API client utility module","Implement functions to fetch project data from API","Implement functions to fetch and update task data","Create helper functions for task context and instructions","Set up secure environment variables for API credentials","Implement comprehensive error handling for API operations"],"constraints":["Use TypeScript for type safety","Ensure proper error handling and logging"],"next":["after you complete the task, update its status by using coderide","then use coderide to retrieve the next task that needs to be completed"],"checkpoints":["Verify API client connects successfully","Test data fetching from the API","Confirm environment variables are properly secured"],"validation":["Unit tests for all API utility functions","Integration test connecting to the actual API","Verify error handling by testing with invalid credentials","Confirm proper type definitions for all API operations","Test query performance to ensure efficiency"]}}]}
+{"success":true,"count":1,"tasks":[{"number":"TCA-3","title":"Implement user authentication","description":"Set up user authentication system with login, registration, and session management","status":"in-progress","priority":"high","agent":"backend_specialist"}]}
 ```
 
 This compact format provides approximately 60-70% reduction in token usage compared to pretty-printed JSON, while maintaining all the original data and structure.
 
+## Workspace-Centered Authentication
+
+Version 0.2.0 introduces workspace-centered authentication where:
+- API keys are bound to specific workspaces
+- No workspace ID needs to be passed in requests
+- All operations are automatically scoped to the authenticated workspace
+- Task numbers (e.g., "TCA-3") and project slugs (e.g., "TCA") are used instead of internal UUIDs
+
+This simplifies the integration and ensures proper data isolation between workspaces.
+
 ## Data Interaction
 
-The server now interacts with the CodeRide API for task and project management, rather than directly with a database. The API endpoints and expected data structures are defined in the CodeRide API documentation (e.g., Postman collection).
+The server interacts with the CodeRide API for task and project management. The API endpoints include:
+- `/task/number/:taskNumber` - Get/update tasks by number
+- `/task/number/:taskNumber/prompt` - Get task prompts
+- `/project/slug/:slug` - Get/update projects by slug
+- `/project/slug/:slug/first-task` - Get the first task of a project
 
 ## License
 

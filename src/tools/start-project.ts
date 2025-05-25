@@ -11,18 +11,39 @@ import { logger } from '../utils/logger';
 /**
  * Define the expected structure of the API response for getting tasks
  */
+interface TaskData {
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  agent?: string;
+  agentPrompt?: string;
+  task_prompt?: string;
+  context?: string;
+  instructions?: string;
+  // Include other relevant fields if the API returns them
+}
+
 interface GetTasksResponse {
-  tasks: any[]; // Assuming tasks is an array of any type for now
-  count: number;
-  // Add other expected fields from the API response if known
+  tasks?: TaskData[];
+  count?: number;
 }
 
 /**
  * Define the expected structure of the API response for getting projects
  */
-interface GetProjectsResponse {
-  projects: any[]; // Assuming projects is an array of any type for now
-  count: number;
+interface ProjectData {
+  slug: string;
+  name: string;
+  description: string;
+  // Include other relevant fields if the API returns them
+}
+
+interface GetProjectResponse {
+  slug?: string;
+  name?: string;
+  description?: string;
   // Add other expected fields from the API response if known
 }
 
@@ -30,13 +51,10 @@ interface GetProjectsResponse {
  * Schema for the start-project tool input
  */
 const StartProjectSchema = z.object({
-  // Workspace ID (required for new API)
-  workspaceId: z.string().describe("Workspace ID from CodeRide"),
-  
   // Project slug (URL-friendly identifier)
   slug: z.string({
     required_error: "Project slug is required"
-  }),
+  }).describe("Project slug identifier (e.g., 'CFW')"),
 }).strict();
 
 /**
@@ -59,16 +77,12 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
     return {
       type: "object",
       properties: {
-        workspaceId: {
-          type: "string",
-          description: "Workspace ID from CodeRide"
-        },
         slug: {
           type: "string",
           description: "Project slug identifier (e.g., 'CFW')"
         }
       },
-      required: ["workspaceId", "slug"]
+      required: ["slug"]
     };
   }
 
@@ -79,56 +93,25 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
     logger.info('Executing start-project tool', input);
 
     try {
-      // Step 1: Find the project by slug
-      const projectRequestBody: any = {
-        workspaceId: input.workspaceId,
-        slug: input.slug
-      };
+      // Get the first task of the project using the new endpoint
+      const url = `/project/slug/${input.slug}/first-task`;
+      logger.debug(`Making GET request to: ${url}`);
       
-      const projectResponse = await apiClient.post('/v1/projects', projectRequestBody) as GetProjectsResponse;
-      const projects = projectResponse.projects;
+      const response = await apiClient.get(url) as any;
       
-      if (!projects || projects.length === 0) {
+      if (!response || response.error) {
         return {
           success: false,
-          error: `Project with slug '${input.slug}' not found`,
+          error: response?.error || `Failed to get first task for project '${input.slug}'`,
           prompt: null
         };
       }
       
-      const projectId = projects[0].id;
-      
-      // Step 2: Find the first task for this project
-      const taskRequestBody: any = {
-        workspaceId: input.workspaceId,
-        projectId: projectId,
-        sort: 'number:asc', // Sort by number ascending to get the first task
-        limit: 1
-      };
-      
-      const taskResponse = await apiClient.post('/v1/tasks', taskRequestBody) as GetTasksResponse;
-      const tasks = taskResponse.tasks;
-      
-      if (!tasks || tasks.length === 0) {
-        return {
-          success: false,
-          error: `No tasks found for project '${input.slug}'`,
-          prompt: null
-        };
-      }
-      
-      // Step 3: Return the task_prompt field from the first task
+      // Return the response from the API
       return {
         success: true,
-        project: {
-          slug: projects[0].slug,
-          name: projects[0].name
-        },
-        task: {
-          number: tasks[0].number,
-          title: tasks[0].title,
-          prompt: tasks[0].task_prompt || tasks[0].agentPrompt // Try both field names
-        }
+        project: response.project,
+        task: response.task
       };
     } catch (error) {
       logger.error('Error in start-project tool', error as Error);

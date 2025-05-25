@@ -9,11 +9,34 @@ import { apiClient } from '../utils/api-client';
 import { logger } from '../utils/logger';
 
 /**
- * Define the expected structure of the API response for getting tasks
+ * Define the expected structure of the API response for getting task prompt
  */
-interface GetTasksResponse {
-  tasks: any[]; // Assuming tasks is an array of any type for now
-  count: number;
+interface TaskData {
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  agent?: string;
+  agentPrompt?: string;
+  task_prompt?: string;
+  context?: string;
+  instructions?: string;
+  // Include other relevant fields if the API returns them
+}
+
+interface GetTaskResponse {
+  // Single task response fields
+  number?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  agent?: string;
+  agentPrompt?: string;
+  task_prompt?: string;
+  context?: string;
+  instructions?: string;
   // Add other expected fields from the API response if known
 }
 
@@ -21,18 +44,15 @@ interface GetTasksResponse {
  * Schema for the get-prompt tool input
  */
 const GetPromptSchema = z.object({
-  // Workspace ID (required for new API)
-  workspaceId: z.string().describe("Workspace ID from CodeRide"),
-
   // Project slug (URL-friendly identifier)
   slug: z.string({
     required_error: "Project slug is required"
-  }),
+  }).describe("Project slug identifier (e.g., 'CFW')"),
   
   // Task number (e.g., "CFW-1")
   number: z.string({
     required_error: "Task number is required"
-  }),
+  }).describe("Task number identifier (e.g., 'CFW-1')"),
 }).strict();
 
 /**
@@ -55,10 +75,6 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
     return {
       type: "object",
       properties: {
-        workspaceId: {
-          type: "string",
-          description: "Workspace ID from CodeRide"
-        },
         slug: {
           type: "string",
           description: "Project slug identifier (e.g., 'CFW')"
@@ -68,7 +84,7 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
           description: "Task number identifier (e.g., 'CFW-1')"
         }
       },
-      required: ["workspaceId", "slug", "number"]
+      required: ["slug", "number"]
     };
   }
 
@@ -79,18 +95,14 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
     logger.info('Executing get-prompt tool', input);
 
     try {
-      // Get the task by number and workspace ID
-      const requestBody: any = {
-        workspaceId: input.workspaceId,
-        slug: input.slug,
-        number: input.number.toUpperCase() // Convert to uppercase for consistency
-      };
+      // Get the task prompt by number
+      const taskNumber = input.number.toUpperCase(); // Convert to uppercase for consistency
+      const url = `/task/number/${taskNumber}/prompt`;
+      logger.debug(`Making GET request to: ${url}`);
       
-      // Use the new API client to get tasks and cast the response data
-      const responseData = await apiClient.post('/v1/tasks', requestBody) as GetTasksResponse;
-      const tasks = responseData.tasks; // Access tasks from the casted response data
+      const responseData = await apiClient.get(url) as GetTaskResponse;
       
-      if (!tasks || tasks.length === 0) {
+      if (!responseData || (!responseData.number && !responseData.title)) {
         return {
           success: false,
           error: `Task with number '${input.number}' not found in project '${input.slug}'`,
@@ -98,13 +110,13 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
         };
       }
       
-      // Return the task_prompt field
+      // Return the task_prompt or agentPrompt field
       return {
         success: true,
         task: {
-          number: tasks[0].number,
-          title: tasks[0].title,
-          prompt: tasks[0].task_prompt || tasks[0].agentPrompt // Try both field names
+          number: responseData.number,
+          title: responseData.title,
+          prompt: responseData.task_prompt || responseData.agentPrompt // Try both field names
         }
       };
     } catch (error) {

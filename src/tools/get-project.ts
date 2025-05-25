@@ -11,14 +11,20 @@ import { logger } from '../utils/logger';
 /**
  * Define the expected structure of the API response for getting projects
  */
+interface ProjectData {
+  slug: string;
+  name: string;
+  description: string;
+  // Include other relevant fields if the API returns them
+}
+
 interface GetProjectsResponse {
-  projects: { // Assuming projects is an array of objects with these properties
-    slug: string;
-    name: string;
-    description: string;
-    // Include other relevant fields if the API returns them
-  }[];
-  count: number;
+  projects?: ProjectData[];
+  count?: number;
+  // Single project response fields
+  slug?: string;
+  name?: string;
+  description?: string;
   // Add other expected fields from the API response if known
 }
 
@@ -26,26 +32,15 @@ interface GetProjectsResponse {
  * Schema for the get-project tool input
  */
 const GetProjectSchema = z.object({
-  // Workspace ID (required for new API)
-  workspaceId: z.string().describe("Workspace ID from CodeRide"),
-
   // Project slug (URL-friendly identifier)
-  slug: z.string().optional(),
+  slug: z.string().describe("Project identifier"),
   
   // Project name
-  name: z.string().optional(),
+  name: z.string().optional().describe("Project display name"),
   
   // Project description (for search)
-  description: z.string().optional(),
-}).strict()
-.refine(
-  // Ensure at least one search parameter is provided (excluding workspaceId)
-  (data) => data.slug !== undefined || data.name !== undefined || data.description !== undefined,
-  {
-    message: 'At least one search parameter (slug, name, or description) must be provided',
-    path: ['searchParameters']
-  }
-);
+  description: z.string().optional().describe("Project description"),
+}).strict();
 
 /**
  * Type for the get-project tool input
@@ -67,10 +62,6 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     return {
       type: "object",
       properties: {
-        workspaceId: {
-          type: "string",
-          description: "Workspace ID from CodeRide"
-        },
         slug: {
           type: "string",
           description: "Project identifier"
@@ -84,12 +75,7 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
           description: "Project description"
         }
       },
-      required: ["workspaceId"], // workspaceId is now required
-      anyOf: [ // Still require at least one search parameter among slug, name, description
-        { required: ["slug"] },
-        { required: ["name"] },
-        { required: ["description"] }
-      ]
+      required: ["slug"]
     };
   }
 
@@ -100,36 +86,32 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     logger.info('Executing get-project tool', input);
 
     try {
-      const requestBody: any = {
-        workspaceId: input.workspaceId,
-      };
+      // Use the API client to get project by slug
+      const url = `/project/slug/${input.slug}`;
+      logger.debug(`Making GET request to: ${url}`);
       
-      // Add search parameters if provided
-      if (input.slug) {
-        requestBody.slug = input.slug;
+      const responseData = await apiClient.get(url) as GetProjectsResponse;
+      
+      // Handle both array and single object responses
+      let projects: ProjectData[] = [];
+      
+      if (responseData.projects) {
+        // Response contains a projects array
+        projects = responseData.projects;
+      } else if (responseData.slug) {
+        // Response is a single project object
+        projects = [{
+          slug: responseData.slug,
+          name: responseData.name || '',
+          description: responseData.description || ''
+        }];
       }
-      
-      if (input.name) {
-        requestBody.name = input.name;
-      }
-      
-      if (input.description) {
-        requestBody.description = input.description;
-      }
-      
-      // Use the new API client to get projects and cast the response data
-      const responseData = await apiClient.post('/v1/projects', requestBody) as GetProjectsResponse;
-      const projects = responseData.projects; // Access projects from the casted response data
       
       // Return formatted response with only the requested fields
       return {
         success: true,
         count: projects.length,
-        projects: projects.map(project => ({
-          slug: project.slug,
-          name: project.name,
-          description: project.description
-        }))
+        projects: projects
       };
     } catch (error) {
       logger.error('Error in get-project tool', error as Error);

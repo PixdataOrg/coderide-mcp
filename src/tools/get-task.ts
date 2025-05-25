@@ -11,9 +11,32 @@ import { logger } from '../utils/logger';
 /**
  * Define the expected structure of the API response for getting tasks
  */
+interface TaskData {
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  agent?: string;
+  agentPrompt?: string;
+  context?: string;
+  instructions?: string;
+  // Include other relevant fields if the API returns them
+}
+
 interface GetTasksResponse {
-  tasks: any[]; // Assuming tasks is an array of any type for now
-  count: number;
+  tasks?: TaskData[];
+  count?: number;
+  // Single task response fields
+  number?: string;
+  title?: string;
+  description?: string;
+  status?: string;
+  priority?: string;
+  agent?: string;
+  agentPrompt?: string;
+  context?: string;
+  instructions?: string;
   // Add other expected fields from the API response if known
 }
 
@@ -21,14 +44,8 @@ interface GetTasksResponse {
  * Schema for the get-task tool input
  */
 const GetTaskSchema = z.object({
-  // Workspace ID (required for new API)
-  workspaceId: z.string().describe("Workspace ID from CodeRide"),
-
-  // Project slug filter (optional)
-  slug: z.string().optional(),
-  
-  // Task number filter (optional)
-  number: z.string().optional(),
+  // Task number (required)
+  number: z.string().describe("Task number identifier (e.g., 'CFW-1')"),
   
   // Optional status filter with predefined values
   status: z.enum(['to-do', 'in-progress', 'completed']).optional(),
@@ -43,12 +60,7 @@ const GetTaskSchema = z.object({
   // Optional offset for pagination (default: 0)
   // Using coerce to handle string inputs from MCP Inspector
   offset: z.coerce.number().int().nonnegative().optional().default(0),
-}).strict()
-  // Require either slug or number
-  .refine(data => !!data.slug || !!data.number, {
-    message: "Either project slug or task number is required",
-    path: ["identifier"]
-  });
+}).strict();
 
 /**
  * Type for the get-task tool input
@@ -70,14 +82,6 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
     return {
       type: "object",
       properties: {
-        workspaceId: {
-          type: "string",
-          description: "Workspace ID from CodeRide"
-        },
-        slug: {
-          type: "string",
-          description: "Project slug identifier (e.g., 'CFW')"
-        },
         number: {
           type: "string",
           description: "Task number identifier (e.g., 'CFW-1')"
@@ -103,7 +107,7 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
           description: "Number of tasks to skip for pagination (default: 0)"
         }
       },
-      required: ["workspaceId"] // workspaceId is now required
+      required: ["number"]
     };
   }
 
@@ -114,47 +118,38 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
     logger.info('Executing get-task tool', input);
 
     try {
-      const requestBody: any = {
-        workspaceId: input.workspaceId,
-        limit: input.limit,
-        offset: input.offset,
-      };
-
-      if (input.number) {
-        requestBody.number = input.number.toUpperCase();
-      } else if (input.slug) {
-        requestBody.slug = input.slug;
+      // Use the API client to get task by number
+      const url = `/task/number/${input.number.toUpperCase()}`;
+      logger.debug(`Making GET request to: ${url}`);
+      
+      const responseData = await apiClient.get(url) as GetTasksResponse;
+      
+      // Handle both array and single object responses
+      let tasks: TaskData[] = [];
+      
+      if (responseData.tasks) {
+        // Response contains a tasks array
+        tasks = responseData.tasks;
+      } else if (responseData.number) {
+        // Response is a single task object
+        tasks = [{
+          number: responseData.number,
+          title: responseData.title || '',
+          description: responseData.description || '',
+          status: responseData.status || '',
+          priority: responseData.priority || '',
+          agent: responseData.agent,
+          agentPrompt: responseData.agentPrompt,
+          context: responseData.context,
+          instructions: responseData.instructions
+        }];
       }
-
-      if (input.status) {
-        requestBody.status = input.status;
-      }
-
-      if (input.agent) {
-        requestBody.agent = input.agent;
-      }
-
-      // Use the new API client to get tasks and cast the response data
-      const responseData = await apiClient.post('/v1/tasks', requestBody) as GetTasksResponse;
-      const tasks = responseData.tasks; // Access tasks from the casted response data
 
       // Return formatted response
       return {
         success: true,
         count: tasks.length,
-        tasks: tasks.map((task: any) => { // Assuming task structure from API
-          return {
-            number: task.number,
-            title: task.title,
-            description: task.description,
-            status: task.status,
-            priority: task.priority,
-            agent: task.agent,
-            agent_prompt: task.agentPrompt, // Adjusting field name based on common API patterns
-            context: task.context,
-            instructions: task.instructions
-          };
-        })
+        tasks: tasks
       };
     } catch (error) {
       logger.error('Error in get-task tool', error as Error);

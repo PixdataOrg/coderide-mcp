@@ -29,18 +29,15 @@ interface UpdateProjectResponse {
  * Schema for the update-project tool input
  */
 const UpdateProjectSchema = z.object({
-  // Workspace ID (required for new API)
-  workspaceId: z.string().describe("Workspace ID from CodeRide"),
-
   // Required field to identify the project
   slug: z.string({
     required_error: "Project slug is required to identify the project",
     invalid_type_error: "Project slug must be a string"
-  }),
+  }).describe("Project slug to identify the project to update"),
   
   // Optional fields that can be updated
-  project_knowledge: z.record(z.any()).optional(),
-  project_diagram: z.string().optional(),
+  project_knowledge: z.record(z.any()).optional().describe("Project knowledge graph data (JSON object)"),
+  project_diagram: z.string().optional().describe("Project structure diagram (Mermaid.js format)"),
 }).strict().refine(
   // Ensure at least one field to update is provided
   (data) => {
@@ -73,10 +70,6 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
     return {
       type: "object",
       properties: {
-        workspaceId: {
-          type: "string",
-          description: "Workspace ID from CodeRide"
-        },
         slug: {
           type: "string",
           description: "Project slug to identify the project to update"
@@ -90,7 +83,7 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
           description: "Project structure diagram (Mermaid.js format)"
         }
       },
-      required: ["workspaceId", "slug"] // workspaceId is now required
+      required: ["slug"]
     };
   }
 
@@ -101,31 +94,14 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
     logger.info('Executing update-project tool', input);
 
     try {
-      // Extract project slug and workspace ID
-      const { slug, workspaceId, ...updateData } = input;
+      // Extract project slug
+      const { slug, ...updateData } = input;
       
-      // The new API updates by ID, so we need to get the project first to find the ID
-      // Using the get-project endpoint to find the project by slug and workspaceId
-      const getProjectResponse = await apiClient.post('/v1/projects', {
-        workspaceId: workspaceId,
-        slug: slug
-      }) as { projects: { id: string }[] }; // Assuming the get projects endpoint returns an array with id
-
-      if (!getProjectResponse || !getProjectResponse.projects || getProjectResponse.projects.length === 0) {
-        return {
-          success: false,
-          error: `Project with slug ${slug} not found in workspace ${workspaceId}`,
-          notFound: true
-        };
-      }
+      // Update project using the API endpoint
+      const url = `/project/slug/${slug}`;
+      logger.debug(`Making PUT request to: ${url}`);
       
-      const projectId = getProjectResponse.projects[0].id;
-      
-      // Update project using the new API endpoint
-      const responseData = await apiClient.put(`/v1/projects/${projectId}`, {
-        workspaceId: workspaceId, // Include workspaceId in the update body as well, based on Postman
-        ...updateData
-      }) as UpdateProjectResponse; // Cast the response data
+      const responseData = await apiClient.put(url, updateData) as UpdateProjectResponse;
 
       // Return formatted response
       return {

@@ -28,20 +28,17 @@ interface UpdateTaskResponse {
  * Schema for the update-task tool input
  */
 const UpdateTaskSchema = z.object({
-  // Workspace ID (required for new API)
-  workspaceId: z.string().describe("Workspace ID from CodeRide"),
-
   // Required field to identify the task
   number: z.string({
     required_error: "Task number is required to identify the task",
     invalid_type_error: "Task number must be a string"
-  }),
+  }).describe("Task number to identify the task to update"),
   
   // Optional fields that can be updated
-  description: z.string().optional(),
+  description: z.string().optional().describe("New task description"),
   status: z.enum(['to-do', 'in-progress', 'completed'], {
     invalid_type_error: "Status must be one of: to-do, in-progress, completed"
-  }).optional(),
+  }).optional().describe("New task status"),
 }).strict().refine(
   // Ensure at least one field to update is provided
   (data) => {
@@ -58,8 +55,7 @@ const UpdateTaskSchema = z.object({
  * Example input schema for documentation
  */
 const exampleInput = {
-  workspaceId: "workspace-123", // Added workspaceId
-  number: "123",
+  number: "CFW-123",
   status: "in-progress",
   description: "Updated task description"
 };
@@ -84,10 +80,6 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
     return {
       type: "object",
       properties: {
-        workspaceId: {
-          type: "string",
-          description: "Workspace ID from CodeRide"
-        },
         number: {
           type: "string",
           description: "Task number to identify the task to update"
@@ -102,7 +94,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           description: "New task status"
         }
       },
-      required: ["workspaceId", "number"] // workspaceId is now required
+      required: ["number"]
     };
   }
 
@@ -113,34 +105,17 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
     logger.info('Executing update-task tool', input);
 
     try {
-      // Extract task number and workspace ID
-      const { number, workspaceId, ...updateData } = input;
+      // Extract task number
+      const { number, ...updateData } = input;
       
       // Convert task number to uppercase for consistency
       const taskNumber = number.toUpperCase();
       
-      // The new API updates by ID, so we need to get the task first to find the ID
-      // Using the get-task endpoint to find the task by number and workspaceId
-      const getTaskResponse = await apiClient.post('/v1/tasks', {
-        workspaceId: workspaceId,
-        number: taskNumber
-      }) as { tasks: { id: string }[] }; // Assuming the get tasks endpoint returns an array with id
-
-      if (!getTaskResponse || !getTaskResponse.tasks || getTaskResponse.tasks.length === 0) {
-        return {
-          success: false,
-          error: `Task with number ${number} not found in workspace ${workspaceId}`,
-          notFound: true
-        };
-      }
+      // Update task using the API endpoint
+      const url = `/task/number/${taskNumber}`;
+      logger.debug(`Making PUT request to: ${url}`);
       
-      const taskId = getTaskResponse.tasks[0].id;
-      
-      // Update task using the new API endpoint
-      const responseData = await apiClient.put(`/v1/tasks/${taskId}/update`, {
-        workspaceId: workspaceId, // Include workspaceId in the update body as well, based on Postman
-        ...updateData
-      }) as UpdateTaskResponse; // Cast the response data
+      const responseData = await apiClient.put(url, updateData) as UpdateTaskResponse;
 
       // Return formatted response
       return {
