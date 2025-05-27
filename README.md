@@ -14,8 +14,6 @@ Imagine your AI not just writing code, but truly understanding project context, 
 
 ## Why CodeRide MCP is a Game-Changer
 
-![CodeRide Demo](https://pixdata.io/wp-content/uploads/2025/05/coderide-code-demo-1_short-3.gif)
-
 *   **Deep Project Understanding for Your AI:** Equip your AI agents with rich, structured context from your CodeRide projects and tasks. Let them see the bigger picture.
 *   **Seamless AI-Powered Task Automation:** Empower AIs to fetch, interpret, and update tasks directly in CodeRide, automating routine project management.
 *   **Bridge the Gap Between Human & AI Developers:** Foster true collaboration with smoother handoffs, consistent task understanding, and aligned efforts.
