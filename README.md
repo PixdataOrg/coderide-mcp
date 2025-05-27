@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://coderide.ai" target="_blank">
-    <img src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/Coderide-og-Facebook.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL0NvZGVyaWRlLW9nLUZhY2Vib29rLmpwZyIsImlhdCI6MTc0ODM3ODg1MiwiZXhwIjoxNzc5OTE0ODUyfQ.jBb-x5f2MACBNBsls0u_9seYIiynektHqef2Y_vSMHQ" alt="CodeRide" width="600"/>
+    <img src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/Coderide-og-Facebook.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL0NvZGVyaWRlLW9nLUZhY2Vib29rLmpwZyIsImlhdCI6MTc0ODM3ODg1MiwiZXhwIjoxNzc5OTE0ODUyfQ.jBb-x5f2MACBNBsls0u_9seYIiynektHqef2Y_vSMHQ" alt="CodeRide" width="100%"/>
   </a>
 </p>
 
@@ -15,10 +15,9 @@ Imagine your AI not just writing code, but truly understanding project context, 
 ## Why CodeRide MCP is a Game-Changer
 
 <p align="center">
-  <video autoplay loop muted playsinline width="600">
-    <source src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/coderide-code-demo-1_short-169.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL2NvZGVyaWRlLWNvZGUtZGVtby0xX3Nob3J0LTE2OS5tcDQiLCJpYXQiOjE3NDgzODAzMDgsImV4cCI6MTc3OTkxNjMwOH0.9j4saX6u1CmXlZiqGMDvhQmacLidjvXSRVTYRr9B7F0" type="video/mp4">
-    Your browser does not support the video tag. Click <a href="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/coderide-code-demo-1_short-169.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL2NvZGVyaWRlLWNvZGUtZGVtby0xX3Nob3J0LTE2OS5tcDQiLCJpYXQiOjE3NDgzODAzMDgsImV4cCI6MTc3OTkxNjMwOH0.9j4saX6u1CmXlZiqGMDvhQmacLidjvXSRVTYRr9B7F0" target="_blank">here to watch the demo</a>.
-  </video>
+  <a href="https://coderide.ai" target="_blank">
+    <img src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/coderide-code-demo-1_short.gif?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL2NvZGVyaWRlLWNvZGUtZGVtby0xX3Nob3J0LmdpZiIsImlhdCI6MTc0ODM4MTE0MCwiZXhwIjoxNzc5OTE3MTQwfQ.m-Y-U_trhGSucOMCW7NTbwOV-2jvhp-u58uBIJ0y81Q" alt="CodeRide Demo" width="100%"/>
+  </a>
 </p>
 
 *   **Deep Project Understanding for Your AI:** Equip your AI agents with rich, structured context from your CodeRide projects and tasks. Let them see the bigger picture.
