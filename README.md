@@ -1,4 +1,4 @@
-# CodeRide MCP v0.2.0
+# CodeRide MCP v0.2.1
 
 A Model Context Protocol (MCP) server implementation that bridges AI coding agents with the CodeRide task management system. This integration addresses the inherent limitations of AI systems by providing structured context, external memory, and standardized communication channels between human developers and AI assistants.
 
@@ -78,7 +78,7 @@ To use this server with AI coding agents, add it to your MCP configuration:
 ```json
 {
   "mcpServers": {
-    "coderide": {
+    "CodeRide": {
       "command": "node",
       "args": ["/path/to/coderide-mcp/dist/index.js"],
       "env": {
@@ -160,14 +160,13 @@ Retrieves task prompt and instructions for AI agents.
 
 ### get_project
 
-Retrieves project details by slug within the authenticated workspace.
+Retrieves project details by slug or name within the authenticated workspace.
 
 **Input Schema:**
 ```json
 {
-  "slug": "project-slug",
-  "name": "optional-project-name",
-  "description": "optional-search-text"
+  "slug": "project-slug (e.g., 'TCA')",
+  "name": "optional-project-name"
 }
 ```
 
