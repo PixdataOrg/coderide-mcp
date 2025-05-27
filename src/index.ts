@@ -92,27 +92,7 @@ class CodeRideServer {
     // Register the list-tools handler
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: this.tools.map(tool => {
-          // Check if tool has a custom getInputSchema method
-          if (typeof tool.getInputSchema === 'function') {
-            return {
-              name: tool.name,
-              description: tool.description,
-              inputSchema: tool.getInputSchema()
-            };
-          }
-          
-          // Fall back to default schema conversion
-          return {
-            name: tool.name,
-            description: tool.description,
-            inputSchema: {
-              type: "object",
-              properties: this.zodSchemaToJsonSchema(tool.schema),
-              required: []
-            }
-          };
-        }),
+        tools: this.tools.map(tool => tool.getMCPToolDefinition()),
       };
     });
 
@@ -190,59 +170,8 @@ class CodeRideServer {
     }
   }
 
-  /**
-   * Convert a Zod schema to a JSON schema
-   */
-  private zodSchemaToJsonSchema(schema: z.ZodType): Record<string, any> {
-    try {
-      // For simplicity, we'll just extract the shape if it's an object
-      if (schema instanceof z.ZodObject) {
-        const shape = schema._def.shape();
-        const properties: Record<string, any> = {};
-        
-        // Convert each property
-        for (const [key, value] of Object.entries(shape)) {
-          properties[key] = this.zodTypeToJsonSchemaType(value as z.ZodType);
-        }
-        
-        return properties;
-      }
-      
-      // Default empty object
-      return {};
-    } catch (error) {
-      logger.error('Failed to convert Zod schema to JSON schema', error as Error);
-      return {};
-    }
-  }
-  
-  /**
-   * Convert a Zod type to a JSON schema type
-   */
-  private zodTypeToJsonSchemaType(zodType: z.ZodType): Record<string, any> {
-    if (zodType instanceof z.ZodString) {
-      return { type: 'string' };
-    } else if (zodType instanceof z.ZodNumber) {
-      return { type: 'number' };
-    } else if (zodType instanceof z.ZodBoolean) {
-      return { type: 'boolean' };
-    } else if (zodType instanceof z.ZodArray) {
-      return { 
-        type: 'array',
-        items: this.zodTypeToJsonSchemaType(zodType._def.type)
-      };
-    } else if (zodType instanceof z.ZodObject) {
-      return {
-        type: 'object',
-        properties: this.zodSchemaToJsonSchema(zodType)
-      };
-    } else if (zodType instanceof z.ZodOptional) {
-      return this.zodTypeToJsonSchemaType(zodType._def.innerType);
-    } else {
-      // Default to any type
-      return { type: 'string' };
-    }
-  }
+  // Removed zodSchemaToJsonSchema and zodTypeToJsonSchemaType methods
+  // as they are no longer needed. Each tool now provides its full MCP definition.
 
   /**
    * Shutdown the server

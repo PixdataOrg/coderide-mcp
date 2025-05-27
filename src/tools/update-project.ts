@@ -4,26 +4,11 @@
  * Updates project knowledge and diagram using the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool } from '../utils/base-tool';
-import { apiClient } from '../utils/api-client'; // Import the new API client
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
+import { apiClient, UpdateProjectApiResponse } from '../utils/api-client'; // Import UpdateProjectApiResponse
 import { logger } from '../utils/logger';
 
-/**
- * Define the expected structure of the API response for updating projects
- */
-interface UpdateProjectResponse {
-  success: boolean;
-  message?: string;
-  project?: { // Assuming the API returns the updated project
-    slug: string;
-    name: string;
-    description: string;
-    project_knowledge?: object;
-    project_diagram?: string;
-    // Include other relevant fields if the API returns them
-  };
-  notFound?: boolean;
-}
+// Removed local UpdateProjectResponse as UpdateProjectApiResponse from api-client.ts will be used.
 
 /**
  * Schema for the update-project tool input
@@ -33,7 +18,9 @@ const UpdateProjectSchema = z.object({
   slug: z.string({
     required_error: "Project slug is required to identify the project",
     invalid_type_error: "Project slug must be a string"
-  }).describe("Project slug to identify the project to update"),
+  })
+  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., GFW)." })
+  .describe("Project slug to identify the project to update"),
   
   // Optional fields that can be updated
   project_knowledge: z.record(z.any()).optional().describe("Project knowledge graph data (JSON object)"),
@@ -60,30 +47,45 @@ type UpdateProjectInput = z.infer<typeof UpdateProjectSchema>;
  */
 export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
   readonly name = 'update_project';
-  readonly description = 'Update project knowledge and diagram';
-  readonly schema = UpdateProjectSchema;
+  readonly description = "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). The project is identified by its unique 'slug'. At least one of 'project_knowledge' or 'project_diagram' must be provided for an update to occur.";
+  readonly zodSchema = UpdateProjectSchema; // Renamed from schema
+  readonly annotations: ToolAnnotations = {
+    title: "Update Project",
+    readOnlyHint: false, // This tool modifies data
+    destructiveHint: false, // Assuming updates are not inherently destructive but additive or modifying
+    idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
+    openWorldHint: true, // Interacts with an external API
+  };
   
   /**
-   * Get input schema for documentation
+   * Returns the full tool definition conforming to MCP.
    */
-  getInputSchema(): Record<string, any> {
+  getMCPToolDefinition(): MCPToolDefinition {
     return {
-      type: "object",
-      properties: {
-        slug: {
-          type: "string",
-          description: "Project slug to identify the project to update"
+      name: this.name,
+      description: this.description,
+      annotations: this.annotations,
+      inputSchema: {
+        type: "object",
+        properties: {
+          slug: {
+            type: "string",
+            pattern: "^[A-Z]{3}$",
+            description: "The unique three-letter uppercase identifier for the project to be updated (e.g., 'CFW')."
+          },
+          project_knowledge: {
+            type: "object",
+            // No specific properties for project_knowledge, as it's z.record(z.any())
+            description: "Optional. A JSON object representing the project's knowledge graph. If provided, this will update the existing knowledge data."
+          },
+          project_diagram: {
+            type: "string",
+            description: "Optional. A string containing the project's structure diagram in Mermaid.js format. If provided, this will update the existing diagram."
+          }
         },
-        project_knowledge: {
-          type: "object",
-          description: "Project knowledge graph data (JSON object)"
-        },
-        project_diagram: {
-          type: "string",
-          description: "Project structure diagram (Mermaid.js format)"
-        }
-      },
-      required: ["slug"]
+        required: ["slug"], // Zod .refine() handles the "at least one update field" logic at runtime.
+        additionalProperties: false
+      }
     };
   }
 
@@ -101,24 +103,57 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
       const url = `/project/slug/${slug}`;
       logger.debug(`Making PUT request to: ${url}`);
       
-      const responseData = await apiClient.put(url, updateData) as UpdateProjectResponse;
+      const responseData = await apiClient.put<UpdateProjectApiResponse>(url, updateData) as unknown as UpdateProjectApiResponse;
 
-      // Return formatted response
-      return {
-        success: responseData.success,
-        message: responseData.message || 'Project updated successfully',
-        project: responseData.project
-      };
+      if (!responseData.success) {
+        const apiErrorMessage = responseData.message || 'API reported update failure without a specific message.';
+        logger.warn(`Update project API call for ${slug} returned success:false. Message: ${apiErrorMessage}`);
+        return {
+          isError: true,
+          content: [{ type: "text", text: `Update for project ${slug} failed: ${apiErrorMessage}` }]
+        };
+      }
+
+      // At this point, responseData.success is true
+      const updatedFieldsList = Object.keys(updateData).join(', ') || 'no specific fields (refresh)';
+      const apiMessage = responseData.message || 'Project successfully updated.';
+
+      if (responseData.project) {
+        const diagramFromResponse = responseData.project.project_diagram; // snake_case access
+
+        return {
+          slug: responseData.project.slug,
+          name: responseData.project.name, 
+          description: responseData.project.description, 
+          project_knowledge: responseData.project.project_knowledge || {}, // snake_case access and output
+          project_diagram: diagramFromResponse || '', // Use the new variable (already snake_case)
+          updateConfirmation: `Project ${responseData.project.slug} updated fields: ${updatedFieldsList}. API: ${apiMessage}`
+        };
+      } else {
+        // responseData.success is true, but responseData.project is missing.
+        logger.warn(`Update project API call for ${slug} succeeded but returned no project data. API message: ${apiMessage}`);
+        return {
+          slug: slug, 
+          name: '', 
+          description: '', 
+          project_knowledge: input.project_knowledge || {}, // Input is snake_case from Zod schema
+          project_diagram: input.project_diagram || '',   // Input is snake_case from Zod schema
+          updateConfirmation: `Project ${slug} update reported success by API, but full project details were not returned. Attempted to update fields: ${updatedFieldsList}. API: ${apiMessage}`
+        };
+      }
     } catch (error) {
-      logger.error('Error in update-project tool', error as Error);
-      
-      // Check if it's a not found error based on API response structure or message
-      const isNotFoundError = (error as any).notFound || (error as Error).message.includes('not found');
+      let errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
+      logger.error(`Error in update-project tool: ${errorMessage}`, error instanceof Error ? error : undefined);
+
+      if (error instanceof Error && (error as any).status === 404) {
+         errorMessage = `Project with slug '${input.slug}' not found.`;
+      } else if (error instanceof Error && error.message.includes('not found')) { // Fallback for other not found indications
+         errorMessage = `Project with slug '${input.slug}' not found or update failed.`;
+      }
       
       return {
-        success: false,
-        error: (error as Error).message,
-        notFound: isNotFoundError
+        isError: true,
+        content: [{ type: "text", text: errorMessage }]
       };
     }
   }

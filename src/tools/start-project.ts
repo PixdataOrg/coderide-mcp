@@ -4,48 +4,11 @@
  * Retrieves task prompt from the first task of a project
  */
 import { z } from 'zod';
-import { BaseTool } from '../utils/base-tool';
-import { apiClient } from '../utils/api-client';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
+import { apiClient, StartProjectApiResponse } from '../utils/api-client'; // Import StartProjectApiResponse
 import { logger } from '../utils/logger';
 
-/**
- * Define the expected structure of the API response for getting tasks
- */
-interface TaskData {
-  number: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  agent?: string;
-  agentPrompt?: string;
-  task_prompt?: string;
-  context?: string;
-  instructions?: string;
-  // Include other relevant fields if the API returns them
-}
-
-interface GetTasksResponse {
-  tasks?: TaskData[];
-  count?: number;
-}
-
-/**
- * Define the expected structure of the API response for getting projects
- */
-interface ProjectData {
-  slug: string;
-  name: string;
-  description: string;
-  // Include other relevant fields if the API returns them
-}
-
-interface GetProjectResponse {
-  slug?: string;
-  name?: string;
-  description?: string;
-  // Add other expected fields from the API response if known
-}
+// Removed unused local interfaces TaskData, GetTasksResponse, ProjectData, GetProjectResponse
 
 /**
  * Schema for the start-project tool input
@@ -54,7 +17,9 @@ const StartProjectSchema = z.object({
   // Project slug (URL-friendly identifier)
   slug: z.string({
     required_error: "Project slug is required"
-  }).describe("Project slug identifier (e.g., 'CFW')"),
+  })
+  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., GFW)." })
+  .describe("Project slug identifier (e.g., 'CFW')"),
 }).strict();
 
 /**
@@ -67,22 +32,34 @@ type StartProjectInput = z.infer<typeof StartProjectSchema>;
  */
 export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
   readonly name = 'start_project';
-  readonly description = 'Retrieve task prompt for the first task of a given project';
-  readonly schema = StartProjectSchema;
+  readonly description = "Retrieves the project details (slug, name) and the prompt for the very first task of a specified project. This is useful for initiating work on a new project or understanding its starting point.";
+  readonly zodSchema = StartProjectSchema; // Renamed from schema
+  readonly annotations: ToolAnnotations = {
+    title: "Start Project",
+    readOnlyHint: true,
+    openWorldHint: true, // Interacts with an external API
+  };
 
   /**
-   * Get input schema for documentation
+   * Returns the full tool definition conforming to MCP.
    */
-  getInputSchema(): Record<string, any> {
+  getMCPToolDefinition(): MCPToolDefinition {
     return {
-      type: "object",
-      properties: {
-        slug: {
-          type: "string",
-          description: "Project slug identifier (e.g., 'CFW')"
-        }
-      },
-      required: ["slug"]
+      name: this.name,
+      description: this.description,
+      annotations: this.annotations,
+      inputSchema: {
+        type: "object",
+        properties: {
+          slug: {
+            type: "string",
+            pattern: "^[A-Z]{3}$",
+            description: "The unique three-letter uppercase identifier for the project (e.g., 'CFW') for which the first task's prompt is to be retrieved."
+          }
+        },
+        required: ["slug"],
+        additionalProperties: false
+      }
     };
   }
 
@@ -97,29 +74,37 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
       const url = `/project/slug/${input.slug}/first-task`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const response = await apiClient.get(url) as any;
+      const responseData = await apiClient.get<StartProjectApiResponse>(url) as unknown as StartProjectApiResponse;
+      // const responseData: StartProjectApiResponse = axiosResponse.data; // This was the previous incorrect line
       
-      if (!response || response.error) {
+      if (!responseData || responseData.error) { 
+        const errorMessage = responseData?.error || `Failed to get first task for project '${input.slug}' (no data or error in response).`;
+        logger.warn(`Error in start-project tool: ${errorMessage}`, { responseData });
         return {
-          success: false,
-          error: response?.error || `Failed to get first task for project '${input.slug}'`,
-          prompt: null
+          isError: true,
+          content: [{ type: "text", text: errorMessage }]
         };
       }
       
-      // Return the response from the API
+      // Return data structured according to the new schema
       return {
-        success: true,
-        project: response.project,
-        task: response.task
+        project: {
+          slug: responseData.project?.slug || '',
+          name: responseData.project?.name || ''
+        },
+        task: {
+          number: responseData.task?.number || '',
+          title: responseData.task?.title || '',
+          prompt: responseData.task?.prompt || '' // Access 'prompt' and output as 'prompt'
+        }
       };
     } catch (error) {
-      logger.error('Error in start-project tool', error as Error);
+      const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
+      logger.error(`Error in start-project tool: ${errorMessage}`, error instanceof Error ? error : undefined);
       
       return {
-        success: false,
-        error: (error as Error).message,
-        prompt: null
+        isError: true,
+        content: [{ type: "text", text: errorMessage }]
       };
     }
   }

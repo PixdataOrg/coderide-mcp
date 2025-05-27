@@ -4,25 +4,11 @@
  * Updates an existing task using the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool } from '../utils/base-tool';
-import { apiClient } from '../utils/api-client'; // Import the new API client
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
+import { apiClient, UpdateTaskApiResponse } from '../utils/api-client'; // Import UpdateTaskApiResponse
 import { logger } from '../utils/logger';
 
-/**
- * Define the expected structure of the API response for updating tasks
- */
-interface UpdateTaskResponse {
-  success: boolean;
-  message?: string;
-  task?: { // Assuming the API returns the updated task
-    number: string;
-    title: string;
-    description: string;
-    status: string;
-    // Include other relevant fields if the API returns them
-  };
-  notFound?: boolean;
-}
+// Removed local UpdateTaskResponse as UpdateTaskApiResponse from api-client.ts will be used.
 
 /**
  * Schema for the update-task tool input
@@ -32,7 +18,9 @@ const UpdateTaskSchema = z.object({
   number: z.string({
     required_error: "Task number is required to identify the task",
     invalid_type_error: "Task number must be a string"
-  }).describe("Task number to identify the task to update"),
+  })
+  .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CFW-1)." })
+  .describe("Task number to identify the task to update"),
   
   // Optional fields that can be updated
   description: z.string().optional().describe("New task description"),
@@ -70,31 +58,45 @@ type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
  */
 export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
   readonly name = 'update_task';
-  readonly description = 'Update an existing task';
-  readonly schema = UpdateTaskSchema;
+  readonly description = "Updates an existing task's 'description' and/or 'status'. The task is identified by its unique 'number' (e.g., 'CFW-123'). At least one of 'description' or 'status' must be provided for an update.";
+  readonly zodSchema = UpdateTaskSchema; // Renamed from schema
+  readonly annotations: ToolAnnotations = {
+    title: "Update Task",
+    readOnlyHint: false, // This tool modifies data
+    destructiveHint: false, // Updates are generally not destructive
+    idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
+    openWorldHint: true, // Interacts with an external API
+  };
   
   /**
-   * Get input schema for documentation
+   * Returns the full tool definition conforming to MCP.
    */
-  getInputSchema(): Record<string, any> {
+  getMCPToolDefinition(): MCPToolDefinition {
     return {
-      type: "object",
-      properties: {
-        number: {
-          type: "string",
-          description: "Task number to identify the task to update"
+      name: this.name,
+      description: this.description,
+      annotations: this.annotations,
+      inputSchema: {
+        type: "object",
+        properties: {
+          number: {
+            type: "string",
+            pattern: "^[A-Z]{3}-\\d+$",
+            description: "The unique identifier for the task to be updated (e.g., 'CFW-123'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+          },
+          description: {
+            type: "string",
+            description: "Optional. The new description for the task. If provided, it will replace the existing task description."
+          },
+          status: {
+            type: "string",
+            enum: ["to-do", "in-progress", "completed"],
+            description: "Optional. The new status for the task. Must be one of: 'to-do', 'in-progress', 'completed'. If provided, it will update the task's current status."
+          }
         },
-        description: {
-          type: "string",
-          description: "New task description"
-        },
-        status: {
-          type: "string",
-          enum: ["to-do", "in-progress", "completed"],
-          description: "New task status"
-        }
-      },
-      required: ["number"]
+        required: ["number"], // Zod .refine() handles the "at least one update field" logic at runtime.
+        additionalProperties: false
+      }
     };
   }
 
@@ -115,24 +117,55 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
       const url = `/task/number/${taskNumber}`;
       logger.debug(`Making PUT request to: ${url}`);
       
-      const responseData = await apiClient.put(url, updateData) as UpdateTaskResponse;
+      const responseData = await apiClient.put<UpdateTaskApiResponse>(url, updateData) as unknown as UpdateTaskApiResponse;
+      
+      if (!responseData.success) {
+        const apiErrorMessage = responseData.message || 'API reported update failure without a specific message.';
+        logger.warn(`Update task API call for ${taskNumber} returned success:false. Message: ${apiErrorMessage}`);
+        return {
+          isError: true,
+          content: [{ type: "text", text: `Update for task ${taskNumber} failed: ${apiErrorMessage}` }]
+        };
+      }
 
-      // Return formatted response
-      return {
-        success: responseData.success,
-        message: responseData.message || 'Task updated successfully',
-        task: responseData.task
-      };
+      // At this point, responseData.success is true
+      const updatedFieldsList = Object.keys(updateData).join(', ') || 'no specific fields (refresh)'; // Handle case where updateData is empty if API allows
+      const apiMessage = responseData.message || 'Task successfully updated.';
+
+      if (responseData.task) {
+        return {
+          number: responseData.task.number,
+          title: responseData.task.title,
+          description: responseData.task.description,
+          status: responseData.task.status,
+          updateConfirmation: `Task ${responseData.task.number} updated fields: ${updatedFieldsList}. API: ${apiMessage}`
+        };
+      } else {
+        // responseData.success is true, but responseData.task is missing.
+        logger.warn(`Update task API call for ${taskNumber} succeeded but returned no task data. API message: ${apiMessage}`);
+        return {
+          number: taskNumber, // Use input taskNumber as fallback
+          title: '', // No title info available from response
+          description: input.description || '', // Fallback to input description if available
+          status: input.status || '',       // Fallback to input status if available
+          updateConfirmation: `Task ${taskNumber} update reported success by API, but full task details were not returned. Attempted to update fields: ${updatedFieldsList}. API: ${apiMessage}`
+        };
+      }
     } catch (error) {
-      logger.error('Error in update-task tool', error as Error);
-      
+      let errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
+      logger.error(`Error in update-task tool: ${errorMessage}`, error instanceof Error ? error : undefined);
+
       // Check if it's a not found error based on API response structure or message
-      const isNotFoundError = (error as any).notFound || (error as Error).message.includes('not found');
+      // Note: ApiError from apiClient already provides a safeErrorMessage
+      if (error instanceof Error && (error as any).status === 404) {
+         errorMessage = `Task with number '${input.number}' not found.`;
+      } else if (error instanceof Error && error.message.includes('not found')) { // Fallback for other not found indications
+         errorMessage = `Task with number '${input.number}' not found or update failed.`;
+      }
       
       return {
-        success: false,
-        error: (error as Error).message,
-        notFound: isNotFoundError
+        isError: true,
+        content: [{ type: "text", text: errorMessage }]
       };
     }
   }

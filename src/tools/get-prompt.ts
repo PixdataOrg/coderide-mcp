@@ -4,55 +4,18 @@
  * Retrieves task prompt from the CodeRide API for a specific task
  */
 import { z } from 'zod';
-import { BaseTool } from '../utils/base-tool';
-import { apiClient } from '../utils/api-client';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
+import { apiClient, TaskApiResponse } from '../utils/api-client'; // Import TaskApiResponse
 import { logger } from '../utils/logger';
-
-/**
- * Define the expected structure of the API response for getting task prompt
- */
-interface TaskData {
-  number: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  agent?: string;
-  agentPrompt?: string;
-  task_prompt?: string;
-  context?: string;
-  instructions?: string;
-  // Include other relevant fields if the API returns them
-}
-
-interface GetTaskResponse {
-  // Single task response fields
-  number?: string;
-  title?: string;
-  description?: string;
-  status?: string;
-  priority?: string;
-  agent?: string;
-  agentPrompt?: string;
-  task_prompt?: string;
-  context?: string;
-  instructions?: string;
-  // Add other expected fields from the API response if known
-}
 
 /**
  * Schema for the get-prompt tool input
  */
 const GetPromptSchema = z.object({
-  // Project slug (URL-friendly identifier)
-  slug: z.string({
-    required_error: "Project slug is required"
-  }).describe("Project slug identifier (e.g., 'CFW')"),
-  
   // Task number (e.g., "CFW-1")
   number: z.string({
     required_error: "Task number is required"
-  }).describe("Task number identifier (e.g., 'CFW-1')"),
+  }).regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CFW-1)." }),
 }).strict();
 
 /**
@@ -65,26 +28,34 @@ type GetPromptInput = z.infer<typeof GetPromptSchema>;
  */
 export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
   readonly name = 'get_prompt';
-  readonly description = 'Retrieve task prompt by task number and project slug';
-  readonly schema = GetPromptSchema;
+  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CFW-123'). This is typically used to understand the detailed requirements or context for an AI agent to work on the task.";
+  readonly zodSchema = GetPromptSchema; // Renamed from schema
+  readonly annotations: ToolAnnotations = {
+    title: "Get Task Prompt",
+    readOnlyHint: true,
+    openWorldHint: true, // Interacts with an external API
+  };
 
   /**
-   * Get input schema for documentation
+   * Returns the full tool definition conforming to MCP.
    */
-  getInputSchema(): Record<string, any> {
+  getMCPToolDefinition(): MCPToolDefinition {
     return {
-      type: "object",
-      properties: {
-        slug: {
-          type: "string",
-          description: "Project slug identifier (e.g., 'CFW')"
+      name: this.name,
+      description: this.description,
+      annotations: this.annotations,
+      inputSchema: {
+        type: "object",
+        properties: {
+          number: {
+            type: "string",
+            pattern: "^[A-Z]{3}-\\d+$",
+            description: "The unique identifier for the task (e.g., 'CFW-123'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+          }
         },
-        number: {
-          type: "string",
-          description: "Task number identifier (e.g., 'CFW-1')"
-        }
-      },
-      required: ["slug", "number"]
+        required: ["number"],
+        additionalProperties: false
+      }
     };
   }
 
@@ -95,37 +66,31 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
     logger.info('Executing get-prompt tool', input);
 
     try {
-      // Get the task prompt by number
+      // Get the task prompt using the specific endpoint /task/number/:taskNumber/prompt
       const taskNumber = input.number.toUpperCase(); // Convert to uppercase for consistency
-      const url = `/task/number/${taskNumber}/prompt`;
+      const url = `/task/number/${taskNumber}/prompt`; 
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get(url) as GetTaskResponse;
+      const responseData = await apiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
       
-      if (!responseData || (!responseData.number && !responseData.title)) {
-        return {
-          success: false,
-          error: `Task with number '${input.number}' not found in project '${input.slug}'`,
-          prompt: null
-        };
+      if (!responseData) { 
+        logger.warn(`No response data received for task number ${taskNumber} from ${url}. This might indicate the task has no prompt or an API issue.`);
+        return { taskPrompt: '' }; // Output camelCase, return empty if no data
       }
       
-      // Return the task_prompt or agentPrompt field
+      // User confirmed API returns 'taskPrompt' (camelCase) for this endpoint.
+      // TaskApiResponse interface has been updated accordingly.
       return {
-        success: true,
-        task: {
-          number: responseData.number,
-          title: responseData.title,
-          prompt: responseData.task_prompt || responseData.agentPrompt // Try both field names
-        }
+        taskPrompt: responseData.taskPrompt || '' // Access camelCase, output camelCase
       };
+
     } catch (error) {
-      logger.error('Error in get-prompt tool', error as Error);
+      const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
+      logger.error(`Error in get-prompt tool: ${errorMessage}`, error instanceof Error ? error : undefined);
       
       return {
-        success: false,
-        error: (error as Error).message,
-        prompt: null
+        isError: true,
+        content: [{ type: "text", text: errorMessage }]
       };
     }
   }

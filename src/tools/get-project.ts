@@ -4,43 +4,30 @@
  * Retrieves project information from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool } from '../utils/base-tool';
-import { apiClient } from '../utils/api-client'; // Import the new API client
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
+import { apiClient, ProjectApiResponse } from '../utils/api-client'; // Import ProjectApiResponse
 import { logger } from '../utils/logger';
-
-/**
- * Define the expected structure of the API response for getting projects
- */
-interface ProjectData {
-  slug: string;
-  name: string;
-  description: string;
-  // Include other relevant fields if the API returns them
-}
-
-interface GetProjectsResponse {
-  projects?: ProjectData[];
-  count?: number;
-  // Single project response fields
-  slug?: string;
-  name?: string;
-  description?: string;
-  // Add other expected fields from the API response if known
-}
 
 /**
  * Schema for the get-project tool input
  */
 const GetProjectSchema = z.object({
   // Project slug (URL-friendly identifier)
-  slug: z.string().describe("Project identifier"),
+  slug: z.string()
+    .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., GFW)." })
+    .optional(),
   
   // Project name
-  name: z.string().optional().describe("Project display name"),
-  
-  // Project description (for search)
-  description: z.string().optional().describe("Project description"),
-}).strict();
+  name: z.string().optional()
+}).strict()
+.refine(
+  // Ensure at least one search parameter is provided
+  (data) => data.slug !== undefined || data.name !== undefined,
+  {
+    message: 'At least one search parameter (slug or name) must be provided',
+    path: ['searchParameters']
+  }
+);
 
 /**
  * Type for the get-project tool input
@@ -52,30 +39,43 @@ type GetProjectInput = z.infer<typeof GetProjectSchema>;
  */
 export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
   readonly name = 'get_project';
-  readonly description = 'Retrieve project information by slug or name';
-  readonly schema = GetProjectSchema;
+  readonly description = "Retrieves detailed information about a specific project. Search by providing either the project's unique 'slug' (three uppercase letters, e.g., 'CFW') or its 'name'. At least one of these parameters must be provided. Slug-based search is prioritized if a slug is given.";
+  readonly zodSchema = GetProjectSchema; // Renamed from schema
+  readonly annotations: ToolAnnotations = {
+    title: "Get Project",
+    readOnlyHint: true,
+    openWorldHint: true, // Interacts with an external API
+  };
 
   /**
-   * Get input schema for documentation
+   * Returns the full tool definition conforming to MCP.
    */
-  getInputSchema(): Record<string, any> {
+  getMCPToolDefinition(): MCPToolDefinition {
     return {
-      type: "object",
-      properties: {
-        slug: {
-          type: "string",
-          description: "Project identifier"
+      name: this.name,
+      description: this.description,
+      annotations: this.annotations,
+      inputSchema: {
+        type: "object",
+        properties: {
+          slug: {
+            type: "string",
+            pattern: "^[A-Z]{3}$",
+            description: "The unique three-letter uppercase identifier for the project (e.g., 'CFW'). If provided, this will be used for a direct lookup."
+          },
+          name: {
+            type: "string",
+            description: "The display name of the project. Use for searching if the exact slug is unknown."
+          }
         },
-        name: {
-          type: "string",
-          description: "Project display name"
-        },
-        description: {
-          type: "string",
-          description: "Project description"
-        }
-      },
-      required: ["slug"]
+        // This anyOf implies that if you provide one, it's a valid way to call the tool.
+        // The Zod .refine() handles the "at least one" logic at runtime.
+        anyOf: [
+          { required: ["slug"] },
+          { required: ["name"] }
+        ],
+        additionalProperties: false
+      }
     };
   }
 
@@ -86,40 +86,40 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     logger.info('Executing get-project tool', input);
 
     try {
-      // Use the API client to get project by slug
-      const url = `/project/slug/${input.slug}`;
-      logger.debug(`Making GET request to: ${url}`);
-      
-      const responseData = await apiClient.get(url) as GetProjectsResponse;
-      
-      // Handle both array and single object responses
-      let projects: ProjectData[] = [];
-      
-      if (responseData.projects) {
-        // Response contains a projects array
-        projects = responseData.projects;
-      } else if (responseData.slug) {
-        // Response is a single project object
-        projects = [{
-          slug: responseData.slug,
-          name: responseData.name || '',
-          description: responseData.description || ''
-        }];
+      // For now, we'll use the slug-based endpoint if slug is provided
+      // In the future, the API might support search by name/description
+      if (input.slug) {
+        const url = `/project/slug/${input.slug}`;
+        logger.debug(`Making GET request to: ${url}`);
+        
+        const responseData = await apiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
+        // const responseData: ProjectApiResponse = axiosResponse.data; // This was the previous incorrect line
+        
+        // Return project data according to the new schema
+        return {
+          slug: responseData?.slug || '', 
+          name: responseData?.name || '',
+          description: responseData?.description || '',
+          projectKnowledge: responseData?.projectKnowledge || {}, // Changed to camelCase
+          projectDiagram: responseData?.projectDiagram || '', // Changed to camelCase
+          projectStandards: responseData?.projectStandards || {} // Assuming project_standards is also camelCase from API
+        };
       }
       
-      // Return formatted response with only the requested fields
+      // If searching by name, we'd need different API endpoints
+      // For now, return an error or appropriate message as the tool currently only supports slug lookup.
+      logger.warn('GetProjectTool called without a slug. Name search not yet implemented.');
       return {
-        success: true,
-        count: projects.length,
-        projects: projects
+        isError: true,
+        content: [{ type: "text", text: "Project lookup by name is not yet supported. Please provide a slug." }]
       };
     } catch (error) {
-      logger.error('Error in get-project tool', error as Error);
+      const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
+      logger.error(`Error in get-project tool: ${errorMessage}`, error instanceof Error ? error : undefined);
       
       return {
-        success: false,
-        error: (error as Error).message,
-        projects: []
+        isError: true,
+        content: [{ type: "text", text: errorMessage }]
       };
     }
   }

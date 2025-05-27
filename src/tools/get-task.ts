@@ -4,62 +4,20 @@
  * Retrieves tasks from the CodeRide API with optional filtering
  */
 import { z } from 'zod';
-import { BaseTool } from '../utils/base-tool';
-import { apiClient } from '../utils/api-client'; // Import the new API client
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
+import { apiClient, TaskApiResponse } from '../utils/api-client'; // Import TaskApiResponse
 import { logger } from '../utils/logger';
 
-/**
- * Define the expected structure of the API response for getting tasks
- */
-interface TaskData {
-  number: string;
-  title: string;
-  description: string;
-  status: string;
-  priority: string;
-  agent?: string;
-  agentPrompt?: string;
-  context?: string;
-  instructions?: string;
-  // Include other relevant fields if the API returns them
-}
-
-interface GetTasksResponse {
-  tasks?: TaskData[];
-  count?: number;
-  // Single task response fields
-  number?: string;
-  title?: string;
-  description?: string;
-  status?: string;
-  priority?: string;
-  agent?: string;
-  agentPrompt?: string;
-  context?: string;
-  instructions?: string;
-  // Add other expected fields from the API response if known
-}
+// Removed local GetTasksResponse and TaskData as TaskApiResponse from api-client.ts will be used.
 
 /**
  * Schema for the get-task tool input
  */
 const GetTaskSchema = z.object({
   // Task number (required)
-  number: z.string().describe("Task number identifier (e.g., 'CFW-1')"),
-  
-  // Optional status filter with predefined values
-  status: z.enum(['to-do', 'in-progress', 'completed']).optional(),
-  
-  // Optional agent filter
-  agent: z.string().optional(),
-  
-  // Optional limit for number of results (default: 10)
-  // Using coerce to handle string inputs from MCP Inspector
-  limit: z.coerce.number().int().positive().optional().default(10),
-  
-  // Optional offset for pagination (default: 0)
-  // Using coerce to handle string inputs from MCP Inspector
-  offset: z.coerce.number().int().nonnegative().optional().default(0),
+  number: z.string()
+    .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CFW-1)." })
+    .describe("Task number identifier (e.g., 'CFW-1')"),
 }).strict();
 
 /**
@@ -72,42 +30,34 @@ type GetTaskInput = z.infer<typeof GetTaskSchema>;
  */
 export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   readonly name = 'get_task';
-  readonly description = 'Retrieve tasks with optional filtering';
-  readonly schema = GetTaskSchema;
+  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CFW-123').";
+  readonly zodSchema = GetTaskSchema; // Renamed from schema
+  readonly annotations: ToolAnnotations = {
+    title: "Get Task",
+    readOnlyHint: true,
+    openWorldHint: true, // Interacts with an external API
+  };
 
   /**
-   * Get input schema for documentation
+   * Returns the full tool definition conforming to MCP.
    */
-  getInputSchema(): Record<string, any> {
+  getMCPToolDefinition(): MCPToolDefinition {
     return {
-      type: "object",
-      properties: {
-        number: {
-          type: "string",
-          description: "Task number identifier (e.g., 'CFW-1')"
+      name: this.name,
+      description: this.description,
+      annotations: this.annotations,
+      inputSchema: {
+        type: "object",
+        properties: {
+          number: {
+            type: "string",
+            pattern: "^[A-Z]{3}-\\d+$",
+            description: "The unique task number identifier (e.g., 'CFW-123'). Must be in the format: three uppercase letters, a hyphen, and one or more digits."
+          }
         },
-        status: {
-          type: "string",
-          enum: ["to-do", "in-progress", "completed"],
-          description: "Task status filter"
-        },
-        agent: {
-          type: "string",
-          description: "Filter tasks by assigned AI agent"
-        },
-        limit: {
-          type: "number",
-          minimum: 1,
-          maximum: 100,
-          description: "Maximum number of tasks to return (default: 10)"
-        },
-        offset: {
-          type: "number",
-          minimum: 0,
-          description: "Number of tasks to skip for pagination (default: 0)"
-        }
-      },
-      required: ["number"]
+        required: ["number"],
+        additionalProperties: false
+      }
     };
   }
 
@@ -120,44 +70,41 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
     try {
       // Use the API client to get task by number
       const url = `/task/number/${input.number.toUpperCase()}`;
+      // Note: The tool's input schema allows for limit, offset, status, agent,
+      // but the URL constructed here only uses the task number.
+      // If the API /task/number/:taskNumber supports these as query params, they should be added.
+      // Example: const url = `/task/number/${input.number.toUpperCase()}?limit=${input.limit}&offset=${input.offset}`;
+      // For now, assuming the endpoint only takes :taskNumber and returns a single task.
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get(url) as GetTasksResponse;
-      
-      // Handle both array and single object responses
-      let tasks: TaskData[] = [];
-      
-      if (responseData.tasks) {
-        // Response contains a tasks array
-        tasks = responseData.tasks;
-      } else if (responseData.number) {
-        // Response is a single task object
-        tasks = [{
-          number: responseData.number,
-          title: responseData.title || '',
-          description: responseData.description || '',
-          status: responseData.status || '',
-          priority: responseData.priority || '',
-          agent: responseData.agent,
-          agentPrompt: responseData.agentPrompt,
-          context: responseData.context,
-          instructions: responseData.instructions
-        }];
-      }
+      const responseData = await apiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
+      // const responseData: TaskApiResponse = axiosResponse.data; // This was the previous incorrect line
 
-      // Return formatted response
+      // If responseData is null, undefined, or an empty object,
+      // optional chaining and fallbacks will produce an "empty task" structure.
+      // This ensures that if the API call itself doesn't throw (e.g. 404, 500),
+      // but returns no meaningful data, we provide a default empty structure.
+      // The logger will still indicate if the response was truly empty if needed at a lower level.
+      
+      // Return only the specific properties requested, ensuring compact JSON
       return {
-        success: true,
-        count: tasks.length,
-        tasks: tasks
+        number: responseData?.number || input.number || '', // Echo input number if API response is empty
+        title: responseData?.title || '',
+        description: responseData?.description || '',
+        status: responseData?.status || '',
+        priority: responseData?.priority || '',
+        agent: responseData?.agent || '',
+        agent_prompt: responseData?.agent_prompt || '',
+        context: responseData?.context || '',
+        instructions: responseData?.instructions || ''
       };
     } catch (error) {
-      logger.error('Error in get-task tool', error as Error);
+      const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
+      logger.error(`Error in get-task tool: ${errorMessage}`, error instanceof Error ? error : undefined);
       
       return {
-        success: false,
-        error: (error as Error).message,
-        tasks: []
+        isError: true,
+        content: [{ type: "text", text: errorMessage }]
       };
     }
   }
