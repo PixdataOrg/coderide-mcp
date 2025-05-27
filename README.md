@@ -1,196 +1,184 @@
-# CodeRide MCP v0.2.1
+# Supercharge Your AI Assistant or IDE with CodeRide Task Management
 
-A Model Context Protocol (MCP) server implementation that bridges AI coding agents with the CodeRide task management system. This integration addresses the inherent limitations of AI systems by providing structured context, external memory, and standardized communication channels between human developers and AI assistants.
+<p align="center">
+  <a href="https://coderide.ai" target="_blank">
+    <img src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/Coderide-og-Facebook.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL0NvZGVyaWRlLW9nLUZhY2Vib29rLmpwZyIsImlhdCI6MTc0ODM3ODg1MiwiZXhwIjoxNzc5OTE0ODUyfQ.jBb-x5f2MACBNBsls0u_9seYIiynektHqef2Y_vSMHQ" alt="CodeRide" width="600"/>
+  </a>
+</p>
 
-CodeRide MCP enables AI agents to:
-- Retrieve and manage tasks with context-optimized structures
-- Access relevant code snippets and documentation within token limits
-- Maintain state across interactions through the external memory system
-- Follow clear task boundaries and permission controls
-- Provide confidence-scored responses for better human oversight
+<!-- Suggestion: Add badges here: npm version, license, build status, etc. -->
 
-This implementation serves as the communication layer for CodeRide, allowing AI coding assistants to work effectively within complex project structures despite their context window limitations and state management challenges.
+**Give your AI coding sidekick the power of CodeRide!** CodeRide MCP connects your favorite AI development tools (like Cursor, Cline, Windsurf, and other MCP clients) directly to CodeRide, the AI-native task management system.
 
-## Features
+Imagine your AI not just writing code, but truly understanding project context, managing its own tasks, and collaborating seamlessly with you. No more endless copy-pasting or manual updates. With CodeRide MCP, your AI becomes a first-class citizen in your CodeRide workflow.
 
-- **get_task**: Retrieve tasks by task number with workspace-scoped authentication
-- **update_task**: Update task descriptions and status using task numbers
-- **get_prompt**: Get task prompts and instructions for AI agents
-- **get_project**: Find projects by slug within the authenticated workspace
-- **update_project**: Update project knowledge graph and structure diagram
-- **start_project**: Get the first task of a project to begin work
-- **Compact JSON**: All responses use compact JSON format to minimize token usage
+## Why CodeRide MCP is a Game-Changer
 
-## Technical Stack
+<p align="center">
+  <video autoplay loop muted playsinline width="600">
+    <source src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/coderide-code-demo-1_short-169.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL2NvZGVyaWRlLWNvZGUtZGVtby0xX3Nob3J0LTE2OS5tcDQiLCJpYXQiOjE3NDgzODAzMDgsImV4cCI6MTc3OTkxNjMwOH0.9j4saX6u1CmXlZiqGMDvhQmacLidjvXSRVTYRr9B7F0" type="video/mp4">
+    Your browser does not support the video tag. Click <a href="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/coderide-code-demo-1_short-169.mp4?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL2NvZGVyaWRlLWNvZGUtZGVtby0xX3Nob3J0LTE2OS5tcDQiLCJpYXQiOjE3NDgzODAzMDgsImV4cCI6MTc3OTkxNjMwOH0.9j4saX6u1CmXlZiqGMDvhQmacLidjvXSRVTYRr9B7F0" target="_blank">here to watch the demo</a>.
+  </video>
+</p>
 
-- **TypeScript**: Type-safe implementation
-- **Node.js**: Runtime environment
-- **MCP SDK**: Protocol handling for AI agent communication
-- **Zod**: Schema validation for tool inputs
-- **Axios**: HTTP communication with CodeRide API
-- **CodeRide API**: Backend task management service
+*   **Deep Project Understanding for Your AI:** Equip your AI agents with rich, structured context from your CodeRide projects and tasks. Let them see the bigger picture.
+*   **Seamless AI-Powered Task Automation:** Empower AIs to fetch, interpret, and update tasks directly in CodeRide, automating routine project management.
+*   **Bridge the Gap Between Human & AI Developers:** Foster true collaboration with smoother handoffs, consistent task understanding, and aligned efforts.
+*   **Optimized for LLM Efficiency:** Compact JSON responses minimize token usage, ensuring faster, more cost-effective AI interactions.
+*   **Secure by Design:** Workspace-scoped API key authentication ensures your data's integrity and that AI operations are confined to the correct project context.
+*   **Plug & Play Integration:** Effortlessly set up with `npx` in any MCP-compatible environment. Get your AI connected in minutes!
+*   **Future-Proof Your Workflow:** Embrace an AI-native approach to development, built on the open Model Context Protocol standard.
 
-## Installation
+## Core Capabilities
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/PixdataOrg/coderide-mcp
-   cd coderide-mcp
-   ```
+The CodeRide MCP server provides your AI with the following capabilities:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+*   **Task Retrieval:** Fetch specific tasks by their unique number.
+*   **Task Updates:** Modify task descriptions and statuses.
+*   **Prompt Access:** Get tailored prompts and instructions for specific tasks.
+*   **Project Details:** Retrieve information about projects by their slug.
+*   **Project Knowledge Management:** Update a project's knowledge graph and architecture diagrams.
+*   **Project Initiation:** Get the first task of a project to kickstart work.
 
-3. Create a `.env` file based on `.env.example`:
-   ```bash
-   cp .env.example .env
-   ```
+## Getting Started
 
-4. Update the `.env` file with your CodeRide API credentials:
-   ```
-   CODERIDE_API_URL=http://localhost:1337
-   CODERIDE_API_KEY=your_api_key_here
-   ```
+It's easy to get CodeRide MCP running and integrated into your AI agent's environment.
 
-## Building and Running
+**Prerequisites:**
 
-1. Build the project:
-   ```bash
-   npm run build
-   ```
+1.  **Node.js and npm:** Ensure you have Node.js (which includes npm) installed. `npx` comes with npm.
+2.  **CodeRide Account & API Key:** This MCP server is designed exclusively for registered CodeRide users. You'll need an active CodeRide account and an API key, which you can obtain from your workspace settings on [app.coderide.ai](https://app.coderide.ai).
 
-2. Run the server:
-   ```bash
-   npm start
-   ```
+**MCP Configuration:**
 
-For development with auto-restart:
-```bash
-npm run dev
-```
-
-## MCP Integration
-
-To use this server with AI coding agents, add it to your MCP configuration:
+Add the following configuration to your MCP client (e.g., Claude Desktop's `claude_desktop_config.json`, Cursor, Cline, Windsurf, VS Code settings, etc.):
 
 ```json
 {
   "mcpServers": {
-    "CodeRide": {
-      "command": "node",
-      "args": ["/path/to/coderide-mcp/dist/index.js"],
+    "coderide": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@coderide/mcp"
+      ],
       "env": {
-        "CODERIDE_API_URL": "http://localhost:1337",
-        "CODERIDE_API_KEY": "your_api_key_here"
-      },
-      "disabled": false,
-      "autoApprove": []
+        "CODERIDE_API_KEY": "YOUR_CODERIDE_API_KEY_HERE"
+      }
     }
   }
 }
 ```
 
-## MCP Inspector
+**Important:**
 
-The MCP Inspector is a tool provided by the Model Context Protocol that allows you to test and interact with the CodeRide MCP server. It provides a user-friendly interface to:
+*   Replace `"YOUR_CODERIDE_API_KEY_HERE"` with your actual CodeRide API key.
 
-- Inspect available tools and their schemas
-- Test tool calls with different parameters
-- View responses and debug issues
+Once configured, your MCP client will automatically start and connect to the CodeRide MCP server, making its tools available to your AI for interacting with your projects and tasks on CodeRide.
 
-### Running the MCP Inspector
+## Who is this for?
 
-We provide a simple script to run the MCP Inspector with the correct settings:
+CodeRide MCP is for:
 
-```bash
-node test/run-mcp-inspector.js
-```
+*   **Developers using AI coding assistants:** Integrate your AI tools (Cursor, Cline, Windsurf, etc.) deeply with your CodeRide task management.
+*   **Teams adopting AI-driven development:** Standardize how AI agents access project information and contribute to tasks.
+*   **Anyone building with MCP:** Leverage a powerful example of an MCP server that connects to a real-world SaaS platform.
 
-This will:
-- Create a temporary settings file
-- Install and run the MCP Inspector
-- Connect to the CodeRide MCP server
-- Clean up when you exit
-
-For more detailed information about using the MCP Inspector with CodeRide, see the [MCP Inspector documentation](docs/mcp-inspector.md).
+If you're looking to make your AI assistant a more productive and integrated member of your development team, CodeRide MCP is for you.
 
 ## Available Tools
 
-### get_task
+Here's a breakdown of the tools provided by CodeRide MCP and how they can be used:
 
-Retrieves tasks by task number within the authenticated workspace.
+### `get_task`
+
+Retrieves detailed information about a specific task by its number (e.g., "TCA-3").
 
 **Input Schema:**
 ```json
 {
   "number": "task-number (e.g., 'TCA-3')",
-  "status": "to-do|in-progress|completed",
-  "agent": "optional-agent-identifier",
-  "limit": 10,
-  "offset": 0
+  "status": "to-do|in-progress|completed", // Optional: filter by status
 }
 ```
 
-### update_task
+**Example Use Case:**
+*   **User Prompt:** "Hey AI, what are the details for task APP-101?"
+*   **AI Action:** Calls `get_task` with `arguments: { "number": "APP-101" }`.
+*   **Outcome:** AI receives the title, description, status, priority, and other context for task APP-101.
 
-Updates an existing task's description and/or status.
+### `update_task`
+
+Updates an existing task's description, status, or other mutable fields.
 
 **Input Schema:**
 ```json
 {
   "number": "task-number-identifier",
-  "description": "updated-task-description",
-  "status": "to-do|in-progress|completed"
+  "description": "updated-task-description", // Optional
+  "status": "to-do|in-progress|completed"   // Optional
 }
 ```
 
-### get_prompt
+**Example Use Case:**
+*   **User Prompt:** "AI, please mark task BUG-42 as 'completed' and add a note: 'Fixed the off-by-one error.'"
+*   **AI Action:** Calls `update_task` with `arguments: { "number": "BUG-42", "status": "completed", "description": "Fixed the off-by-one error." }`.
+*   **Outcome:** Task BUG-42 is updated in CodeRide.
 
-Retrieves task prompt and instructions for AI agents.
+### `get_prompt`
+
+Retrieves the specific prompt or instructions tailored for an AI agent to work on a given task.
 
 **Input Schema:**
 ```json
 {
-  "slug": "project-slug (e.g., 'TCA')",
   "number": "task-number (e.g., 'TCA-3')"
 }
 ```
 
-### get_project
+**Example Use Case:**
+*   **User Prompt:** "AI, I'm ready to start on task ETF-7. What's the main objective?"
+*   **AI Action:** Calls `get_prompt` with `arguments: { "slug": "ETF", "number": "ETF-7" }`.
+*   **Outcome:** AI receives the specific, actionable prompt for FEAT-7, enabling it to begin work with clear direction.
 
-Retrieves project details by slug or name within the authenticated workspace.
+### `get_project`
+
+Retrieves details about a specific project using its slug.
 
 **Input Schema:**
 ```json
 {
   "slug": "project-slug (e.g., 'TCA')",
-  "name": "optional-project-name"
+  "name": "optional-project-name" // Can also retrieve by name
 }
 ```
 
-### update_project
+**Example Use Case:**
+*   **User Prompt:** "AI, can you give me an overview of the 'Omega Initiative' project?"
+*   **AI Action:** Calls `get_project` with `arguments: { "slug": "omega-initiative" }`.
+*   **Outcome:** AI receives the project's name, description, and potentially links to its knowledge base or diagrams.
 
-Updates a project's knowledge graph and structure diagram.
+### `update_project`
+
+Updates a project's high-level information, such as its knowledge graph or system architecture diagram.
 
 **Input Schema:**
 ```json
 {
   "slug": "project-slug-identifier",
-  "project_knowledge": {
-    "key": "value",
-    "nested": {
-      "data": "structure"
-    }
-  },
-  "project_diagram": "graph TD;\n  A[Component A] --> B[Component B];\n  A --> C[Component C];"
+  "project_knowledge": { /* JSON object representing the knowledge graph */ }, // Optional
+  "project_diagram": "/* Mermaid diagram string or similar */"             // Optional
 }
 ```
 
-### start_project
+**Example Use Case:**
+*   **User Prompt:** "AI, I've updated the user authentication flow. Please update the project diagram for project 'APB'."
+*   **AI Action:** (After generating/receiving the new diagram) Calls `update_project` with `arguments: { "slug": "APB", "project_diagram": "/* new mermaid diagram */" }`.
+*   **Outcome:** The 'AlphaProject' in CodeRide now has the updated architecture diagram.
 
-Retrieves the first task of a project to begin work.
+### `start_project`
+
+Retrieves the first or next recommended task for a given project, allowing an AI to begin work.
 
 **Input Schema:**
 ```json
@@ -199,35 +187,77 @@ Retrieves the first task of a project to begin work.
 }
 ```
 
-## Response Format
+**Example Use Case:**
+*   **User Prompt:** "AI, let's get started on the 'MobileAppV2' project. What's the first task?"
+*   **AI Action:** Calls `start_project` with `arguments: { "slug": "MBC" }`.
+*   **Outcome:** AI receives details for the initial task in the 'MBC' project, ready to begin.
 
-All responses from the CodeRide MCP server are returned in compact JSON format to minimize token usage when communicating with AI agents. This reduces the context window consumption while preserving all data.
+## Technical Highlights
 
-**Example Response:**
-```json
-{"success":true,"count":1,"tasks":[{"number":"TCA-3","title":"Implement user authentication","description":"Set up user authentication system with login, registration, and session management","status":"in-progress","priority":"high","agent":"backend_specialist"}]}
-```
+*   **Workspace-Centered Authentication:** API keys are tied to specific workspaces. All operations are automatically scoped, simplifying requests and enhancing security. No need to pass `workspaceId`!
+*   **User-Friendly Identifiers:** Interact with tasks and projects using human-readable numbers (e.g., "TCA-3") and slugs (e.g., "TCA") instead of internal UUIDs.
+*   **Optimized Responses:** All tools return compact JSON, minimizing token usage for LLM communication.
+*   **Robust API Interaction:** Uses the official CodeRide API (`https://api.coderide.ai` by default) for all operations.
 
-This compact format provides approximately 60-70% reduction in token usage compared to pretty-printed JSON, while maintaining all the original data and structure.
+## Local Development & Contribution
 
-## Workspace-Centered Authentication
+This section is for those interested in contributing to the CodeRide MCP package itself or running a local development version for testing modifications. Note that even when run locally, this server connects to the production CodeRide API.
 
-Version 0.2.0 introduces workspace-centered authentication where:
-- API keys are bound to specific workspaces
-- No workspace ID needs to be passed in requests
-- All operations are automatically scoped to the authenticated workspace
-- Task numbers (e.g., "TCA-3") and project slugs (e.g., "TCA") are used instead of internal UUIDs
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/PixdataOrg/coderide-mcp
+    cd coderide-mcp
+    ```
 
-This simplifies the integration and ensures proper data isolation between workspaces.
+2.  **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-## Data Interaction
+3.  **Set up environment variables:**
+    Create a `.env` file by copying `.env.example`:
+    ```bash
+    cp .env.example .env
+    ```
+    Edit `.env` and add your `CODERIDE_API_KEY`.
+    ```env
+    CODERIDE_API_KEY=your_api_key_here
+    ```
 
-The server interacts with the CodeRide API for task and project management. The API endpoints include:
-- `/task/number/:taskNumber` - Get/update tasks by number
-- `/task/number/:taskNumber/prompt` - Get task prompts
-- `/project/slug/:slug` - Get/update projects by slug
-- `/project/slug/:slug/first-task` - Get the first task of a project
+4.  **Build and Run:**
+    *   Build the project:
+        ```bash
+        npm run build
+        ```
+    *   Run the server:
+        ```bash
+        npm start
+        ```
+    *   For development with auto-restarts on file changes:
+        ```bash
+        npm run dev
+        ```
+
+
+## About CodeRide
+
+**CodeRide is where AI and human developers unite to build better software, faster.**
+
+It's more than just task management; it's an AI-native platform built from the ground up to support the unique workflows of AI-assisted software development. CodeRide provides the essential structured context, project knowledge, and external memory that AI agents require to understand complex projects, contribute meaningfully, and collaborate effectively with their human counterparts.
+
+Transform your development process with a tool that truly understands the synergy between human ingenuity and artificial intelligence.
+
+Discover the future of software development at [coderide.ai](https://coderide.ai).
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues, fork the repository, and create pull requests.
 
 ## License
 
 All rights reserved. See the [LICENSE](LICENSE) file for details.
+
+## Support & Community
+
+*   Have questions or need help with `@coderide/mcp`? [Open an issue](https://github.com/PixdataOrg/coderide-mcp/issues) on our GitHub repository.
+*   Want to learn more about CodeRide? Visit [coderide.ai](https://coderide.ai) or join our community (Link to community forum/Discord if available).

@@ -1,12 +1,20 @@
 {
-  "name": "coderide-mcp",
+  "name": "@coderide/mcp",
   "version": "0.2.1",
   "description": "Model Context Protocol server for CodeRide, task management redesigned for AI",
   "main": "dist/index.js",
+  "bin": {
+    "coderide-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "postbuild": "chmod +x dist/index.js",
-    "start": "node dist/index.js",
+    "start": "npm run build && node dist/index.js",
     "dev": "ts-node src/index.ts",
     "test": "node test/test-server.js"
   },
@@ -15,8 +23,8 @@
     "task-management",
     "vibe-coding"
   ],
-  "author": "f.neri@pixdata.io",
-  "license": "All rights reserved",
+  "author": "Pix Srl <digital@pixdata.io>",
+  "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
     "axios": "^1.6.0",

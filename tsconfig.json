@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "strict": true,
+    "removeComments": true,
     "outDir": "dist",
     "sourceMap": true,
     "declaration": true,
