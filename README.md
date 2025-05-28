@@ -1,5 +1,7 @@
 # Supercharge Your AI Assistant or IDE with CodeRide Task Management
 
+[![smithery badge](https://smithery.ai/badge/@PixdataOrg/coderide)](https://smithery.ai/server/@PixdataOrg/coderide)
+
 <p align="center">
   <a href="https://coderide.ai" target="_blank">
     <img src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/Coderide-og-Facebook.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL0NvZGVyaWRlLW9nLUZhY2Vib29rLmpwZyIsImlhdCI6MTc0ODM3ODg1MiwiZXhwIjoxNzc5OTE0ODUyfQ.jBb-x5f2MACBNBsls0u_9seYIiynektHqef2Y_vSMHQ" alt="CodeRide" width="100%"/>
@@ -34,6 +36,14 @@ The CodeRide MCP server provides your AI with the following capabilities:
 *   **Project Initiation:** Get the first task of a project to kickstart work.
 
 ## ⚙️ Getting Started
+
+### Installing via Smithery
+
+To install Coderide MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@PixdataOrg/coderide):
+
+```bash
+npx -y @smithery/cli install @PixdataOrg/coderide --client claude
+```
 
 It's easy to get CodeRide MCP running and integrated into your AI agent's environment.
 
