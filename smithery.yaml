@@ -9,23 +9,16 @@ startCommand:
       command: 'node',
       args: ['dist/index.js'],
       env: {
-        CODERIDE_API_KEY: config.coderideApiKey,
-        CODERIDE_API_URL: config.coderideApiUrl || 'https://api.coderide.ai'
+        CODERIDE_API_KEY: config.CODERIDE_API_KEY
       }
     })
   configSchema:
     # JSON Schema defining the configuration options for the MCP.
     type: object
     required:
-      - coderideApiKey
+      - CODERIDE_API_KEY
     properties:
-      coderideApiKey:
+      CODERIDE_API_KEY:
         type: string
         description: CodeRide API key for authentication
-      coderideApiUrl:
-        type: string
-        default: https://api.coderide.ai
-        description: Optional CodeRide API URL
-  exampleConfig:
-    coderideApiKey: example_api_key_123
-    coderideApiUrl: https://api.coderide.ai
+        example: CR_API_KEY_xxxxxxxxxxxxxxxxxxxx # Placeholder example
