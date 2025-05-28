@@ -1,5 +1,6 @@
 # Supercharge Your AI Assistant or IDE with CodeRide Task Management
 
+[![npm version](https://img.shields.io/npm/v/@coderide/mcp.svg)](https://www.npmjs.com/package/@coderide/mcp)
 [![smithery badge](https://smithery.ai/badge/@PixdataOrg/coderide)](https://smithery.ai/server/@PixdataOrg/coderide)
 
 <p align="center">
@@ -201,46 +202,6 @@ Retrieves the first or next recommended task for a given project, allowing an AI
 *   **User-Friendly Identifiers:** Interact with tasks and projects using human-readable numbers (e.g., "TCA-3") and slugs (e.g., "TCA") instead of internal UUIDs.
 *   **Optimized Responses:** All tools return compact JSON, minimizing token usage for LLM communication.
 *   **Robust API Interaction:** Uses the official CodeRide API (`https://api.coderide.ai` by default) for all operations.
-
-## 🖥️ Local Development
-
-This section is for those interested in contributing to the CodeRide MCP package itself or running a local development version for testing modifications. Note that even when run locally, this server connects to the production CodeRide API.
-
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/PixdataOrg/coderide-mcp
-    cd coderide-mcp
-    ```
-
-2.  **Install dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Set up environment variables:**
-    Create a `.env` file by copying `.env.example`:
-    ```bash
-    cp .env.example .env
-    ```
-    Edit `.env` and add your `CODERIDE_API_KEY`.
-    ```env
-    CODERIDE_API_KEY=your_api_key_here
-    ```
-
-4.  **Build and Run:**
-    *   Build the project:
-        ```bash
-        npm run build
-        ```
-    *   Run the server:
-        ```bash
-        npm start
-        ```
-    *   For development with auto-restarts on file changes:
-        ```bash
-        npm run dev
-        ```
-
 
 ## 🔥 About CodeRide
 
