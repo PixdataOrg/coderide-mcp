@@ -12,7 +12,7 @@
 
 Imagine your AI not just writing code, but truly understanding project context, managing its own tasks, and collaborating seamlessly with you. No more endless copy-pasting or manual updates. With CodeRide MCP, your AI becomes a first-class citizen in your CodeRide workflow.
 
-## Why CodeRide MCP is a Game-Changer
+## 🚀 Why CodeRide MCP is a Game-Changer
 
 *   **Deep Project Understanding for Your AI:** Equip your AI agents with rich, structured context from your CodeRide projects and tasks. Let them see the bigger picture.
 *   **Seamless AI-Powered Task Automation:** Empower AIs to fetch, interpret, and update tasks directly in CodeRide, automating routine project management.
@@ -22,7 +22,7 @@ Imagine your AI not just writing code, but truly understanding project context, 
 *   **Plug & Play Integration:** Effortlessly set up with `npx` in any MCP-compatible environment. Get your AI connected in minutes!
 *   **Future-Proof Your Workflow:** Embrace an AI-native approach to development, built on the open Model Context Protocol standard.
 
-## Core Capabilities
+## ✨ Core Capabilities
 
 The CodeRide MCP server provides your AI with the following capabilities:
 
@@ -33,7 +33,7 @@ The CodeRide MCP server provides your AI with the following capabilities:
 *   **Project Knowledge Management:** Update a project's knowledge graph and architecture diagrams.
 *   **Project Initiation:** Get the first task of a project to kickstart work.
 
-## Getting Started
+## ⚙️ Getting Started
 
 It's easy to get CodeRide MCP running and integrated into your AI agent's environment.
 
@@ -69,7 +69,7 @@ Add the following configuration to your MCP client (e.g., Claude Desktop's `clau
 
 Once configured, your MCP client will automatically start and connect to the CodeRide MCP server, making its tools available to your AI for interacting with your projects and tasks on CodeRide.
 
-## Who is this for?
+## 🤖 Who is this for?
 
 CodeRide MCP is for:
 
@@ -79,7 +79,7 @@ CodeRide MCP is for:
 
 If you're looking to make your AI assistant a more productive and integrated member of your development team, CodeRide MCP is for you.
 
-## Available Tools
+## 🔨 Available Tools
 
 Here's a breakdown of the tools provided by CodeRide MCP and how they can be used:
 
@@ -185,14 +185,14 @@ Retrieves the first or next recommended task for a given project, allowing an AI
 *   **AI Action:** Calls `start_project` with `arguments: { "slug": "MBC" }`.
 *   **Outcome:** AI receives details for the initial task in the 'MBC' project, ready to begin.
 
-## Technical Highlights
+## 💡 Technical Highlights
 
 *   **Workspace-Centered Authentication:** API keys are tied to specific workspaces. All operations are automatically scoped, simplifying requests and enhancing security. No need to pass `workspaceId`!
 *   **User-Friendly Identifiers:** Interact with tasks and projects using human-readable numbers (e.g., "TCA-3") and slugs (e.g., "TCA") instead of internal UUIDs.
 *   **Optimized Responses:** All tools return compact JSON, minimizing token usage for LLM communication.
 *   **Robust API Interaction:** Uses the official CodeRide API (`https://api.coderide.ai` by default) for all operations.
 
-## Local Development & Contribution
+## 🖥️ Local Development
 
 This section is for those interested in contributing to the CodeRide MCP package itself or running a local development version for testing modifications. Note that even when run locally, this server connects to the production CodeRide API.
 
@@ -232,7 +232,7 @@ This section is for those interested in contributing to the CodeRide MCP package
         ```
 
 
-## About CodeRide
+## 🔥 About CodeRide
 
 **CodeRide is where AI and human developers unite to build better software, faster.**
 
@@ -242,15 +242,15 @@ Transform your development process with a tool that truly understands the synerg
 
 Discover the future of software development at [coderide.ai](https://coderide.ai).
 
-## Contributing
+## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit issues, fork the repository, and create pull requests.
 
-## License
+## 🔖 License
 
 All rights reserved. See the [LICENSE](LICENSE) file for details.
 
-## Support & Community
+## 🤗 Support & Community
 
 *   Have questions or need help with `@coderide/mcp`? [Open an issue](https://github.com/PixdataOrg/coderide-mcp/issues) on our GitHub repository.
 *   Want to learn more about CodeRide? Visit [coderide.ai](https://coderide.ai) or join our community (Link to community forum/Discord if available).
