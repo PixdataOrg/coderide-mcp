@@ -3,6 +3,10 @@
 [![npm version](https://img.shields.io/npm/v/@coderide/mcp.svg)](https://www.npmjs.com/package/@coderide/mcp)
 [![smithery badge](https://smithery.ai/badge/@PixdataOrg/coderide)](https://smithery.ai/server/@PixdataOrg/coderide)
 
+<a href="https://glama.ai/mcp/servers/@PixdataOrg/coderide-mcp">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@PixdataOrg/coderide-mcp/badge" alt="coderide MCP server" />
+</a>
+
 <p align="center">
   <a href="https://coderide.ai" target="_blank">
     <img src="https://ideybnueizkxwqmjowpy.supabase.co/storage/v1/object/sign/coderide-website/Coderide-og-Facebook.jpg?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6InN0b3JhZ2UtdXJsLXNpZ25pbmcta2V5X2M5OWNmMjY4LTg5MTMtNGFiOS1iYjhhLTIxMTUyNDZjNGM2NCJ9.eyJ1cmwiOiJjb2RlcmlkZS13ZWJzaXRlL0NvZGVyaWRlLW9nLUZhY2Vib29rLmpwZyIsImlhdCI6MTc0ODM3ODg1MiwiZXhwIjoxNzc5OTE0ODUyfQ.jBb-x5f2MACBNBsls0u_9seYIiynektHqef2Y_vSMHQ" alt="CodeRide" width="100%"/>
