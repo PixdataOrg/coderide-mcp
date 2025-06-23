@@ -19,7 +19,7 @@ const UpdateProjectSchema = z.object({
     required_error: "Project slug is required to identify the project",
     invalid_type_error: "Project slug must be a string"
   })
-  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., GFW)." })
+  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CRD)." })
   .describe("Project slug to identify the project to update"),
   
   // Optional fields that can be updated
@@ -71,7 +71,7 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project to be updated (e.g., 'CFW')."
+            description: "The unique three-letter uppercase identifier for the project to be updated (e.g., 'CRD')."
           },
           project_knowledge: {
             type: "object",

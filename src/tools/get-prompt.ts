@@ -12,10 +12,10 @@ import { logger } from '../utils/logger';
  * Schema for the get-prompt tool input
  */
 const GetPromptSchema = z.object({
-  // Task number (e.g., "CFW-1")
+  // Task number (e.g., "CRD-1")
   number: z.string({
     required_error: "Task number is required"
-  }).regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CFW-1)." }),
+  }).regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1)." }),
 }).strict();
 
 /**
@@ -28,7 +28,7 @@ type GetPromptInput = z.infer<typeof GetPromptSchema>;
  */
 export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
   readonly name = 'get_prompt';
-  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CFW-123'). This is typically used to understand the detailed requirements or context for an AI agent to work on the task.";
+  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CRD-1'). This is typically used to understand the detailed requirements or context for an AI agent to work on the task.";
   readonly zodSchema = GetPromptSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Task Prompt",
@@ -50,7 +50,7 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
           number: {
             type: "string",
             pattern: "^[A-Z]{3}-\\d+$",
-            description: "The unique identifier for the task (e.g., 'CFW-123'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+            description: "The unique identifier for the task (e.g., 'CRD-1'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
           }
         },
         required: ["number"],

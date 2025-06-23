@@ -19,7 +19,7 @@ const UpdateTaskSchema = z.object({
     required_error: "Task number is required to identify the task",
     invalid_type_error: "Task number must be a string"
   })
-  .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CFW-1)." })
+  .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1)." })
   .describe("Task number to identify the task to update"),
   
   // Optional fields that can be updated
@@ -43,7 +43,7 @@ const UpdateTaskSchema = z.object({
  * Example input schema for documentation
  */
 const exampleInput = {
-  number: "CFW-123",
+  number: "CRD-1",
   status: "in-progress",
   description: "Updated task description"
 };
@@ -58,7 +58,7 @@ type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
  */
 export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
   readonly name = 'update_task';
-  readonly description = "Updates an existing task's 'description' and/or 'status'. The task is identified by its unique 'number' (e.g., 'CFW-123'). At least one of 'description' or 'status' must be provided for an update.";
+  readonly description = "Updates an existing task's 'description' and/or 'status'. The task is identified by its unique 'number' (e.g., 'CRD-1'). At least one of 'description' or 'status' must be provided for an update.";
   readonly zodSchema = UpdateTaskSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Update Task",
@@ -82,7 +82,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           number: {
             type: "string",
             pattern: "^[A-Z]{3}-\\d+$",
-            description: "The unique identifier for the task to be updated (e.g., 'CFW-123'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+            description: "The unique identifier for the task to be updated (e.g., 'CRD-1'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
           },
           description: {
             type: "string",

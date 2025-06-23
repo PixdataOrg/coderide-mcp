@@ -18,8 +18,8 @@ const StartProjectSchema = z.object({
   slug: z.string({
     required_error: "Project slug is required"
   })
-  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., GFW)." })
-  .describe("Project slug identifier (e.g., 'CFW')"),
+  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CRD)." })
+  .describe("Project slug identifier (e.g., 'CRD')"),
 }).strict();
 
 /**
@@ -32,7 +32,7 @@ type StartProjectInput = z.infer<typeof StartProjectSchema>;
  */
 export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
   readonly name = 'start_project';
-  readonly description = "Retrieves the project details (slug, name) and the prompt for the very first task of a specified project. This is useful for initiating work on a new project or understanding its starting point.";
+  readonly description = "Retrieves the project details and the prompt for the very first task of a specified project using the project's unique slug (e.g., 'CRD'). This is useful for initiating work on a new project or understanding its starting point.";
   readonly zodSchema = StartProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Start Project",
@@ -54,7 +54,7 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project (e.g., 'CFW') for which the first task's prompt is to be retrieved."
+            description: "The unique three-letter uppercase identifier for the project (e.g., 'CRD') for which the first task's prompt is to be retrieved."
           }
         },
         required: ["slug"],

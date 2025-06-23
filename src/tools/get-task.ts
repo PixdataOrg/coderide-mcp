@@ -16,8 +16,8 @@ import { logger } from '../utils/logger';
 const GetTaskSchema = z.object({
   // Task number (required)
   number: z.string()
-    .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CFW-1)." })
-    .describe("Task number identifier (e.g., 'CFW-1')"),
+    .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1)." })
+    .describe("Task number identifier (e.g., 'CRD-1')"),
 }).strict();
 
 /**
@@ -30,7 +30,7 @@ type GetTaskInput = z.infer<typeof GetTaskSchema>;
  */
 export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   readonly name = 'get_task';
-  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CFW-123').";
+  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1').";
   readonly zodSchema = GetTaskSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Task",
@@ -52,7 +52,7 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
           number: {
             type: "string",
             pattern: "^[A-Z]{3}-\\d+$",
-            description: "The unique task number identifier (e.g., 'CFW-123'). Must be in the format: three uppercase letters, a hyphen, and one or more digits."
+            description: "The unique task number identifier (e.g., 'CRD-1'). Must be in the format: three uppercase letters, a hyphen, and one or more digits."
           }
         },
         required: ["number"],

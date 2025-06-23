@@ -13,21 +13,11 @@ import { logger } from '../utils/logger';
  */
 const GetProjectSchema = z.object({
   // Project slug (URL-friendly identifier)
-  slug: z.string()
-    .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., GFW)." })
-    .optional(),
-  
-  // Project name
-  name: z.string().optional()
-}).strict()
-.refine(
-  // Ensure at least one search parameter is provided
-  (data) => data.slug !== undefined || data.name !== undefined,
-  {
-    message: 'At least one search parameter (slug or name) must be provided',
-    path: ['searchParameters']
-  }
-);
+  slug: z.string({
+    required_error: "Project slug is required"
+  })
+    .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CRD)." }),
+}).strict();
 
 /**
  * Type for the get-project tool input
@@ -39,7 +29,7 @@ type GetProjectInput = z.infer<typeof GetProjectSchema>;
  */
 export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
   readonly name = 'get_project';
-  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CFW').";
+  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CRD').";
   readonly zodSchema = GetProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Project",
@@ -61,19 +51,10 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project (e.g., 'CFW'). If provided, this will be used for a direct lookup."
-          },
-          name: {
-            type: "string",
-            description: "The display name of the project. Use for searching if the exact slug is unknown."
+            description: "The unique three-letter uppercase identifier for the project (e.g., 'CRD')."
           }
         },
-        // This anyOf implies that if you provide one, it's a valid way to call the tool.
-        // The Zod .refine() handles the "at least one" logic at runtime.
-        anyOf: [
-          { required: ["slug"] },
-          { required: ["name"] }
-        ],
+        required: ["slug"],
         additionalProperties: false
       }
     };
@@ -86,32 +67,19 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     logger.info('Executing get-project tool', input);
 
     try {
-      // For now, we'll use the slug-based endpoint if slug is provided
-      // In the future, the API might support search by name/description
-      if (input.slug) {
-        const url = `/project/slug/${input.slug}`;
-        logger.debug(`Making GET request to: ${url}`);
-        
-        const responseData = await apiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
-        // const responseData: ProjectApiResponse = axiosResponse.data; // This was the previous incorrect line
-        
-        // Return project data according to the new schema
-        return {
-          slug: responseData?.slug || '', 
-          name: responseData?.name || '',
-          description: responseData?.description || '',
-          projectKnowledge: responseData?.projectKnowledge || {}, // Changed to camelCase
-          projectDiagram: responseData?.projectDiagram || '', // Changed to camelCase
-          projectStandards: responseData?.projectStandards || {} // Assuming project_standards is also camelCase from API
-        };
-      }
+      const url = `/project/slug/${input.slug}`;
+      logger.debug(`Making GET request to: ${url}`);
       
-      // If searching by name, we'd need different API endpoints
-      // For now, return an error or appropriate message as the tool currently only supports slug lookup.
-      logger.warn('GetProjectTool called without a slug. Name search not yet implemented.');
+      const responseData = await apiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
+      
+      // Return project data according to the new schema
       return {
-        isError: true,
-        content: [{ type: "text", text: "Project lookup by name is not yet supported. Please provide a slug." }]
+        slug: responseData?.slug || '', 
+        name: responseData?.name || '',
+        description: responseData?.description || '',
+        projectKnowledge: responseData?.projectKnowledge || {}, // Changed to camelCase
+        projectDiagram: responseData?.projectDiagram || '', // Changed to camelCase
+        projectStandards: responseData?.projectStandards || {} // Assuming project_standards is also camelCase from API
       };
     } catch (error) {
       const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
