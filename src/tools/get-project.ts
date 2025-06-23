@@ -39,7 +39,7 @@ type GetProjectInput = z.infer<typeof GetProjectSchema>;
  */
 export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
   readonly name = 'get_project';
-  readonly description = "Retrieves detailed information about a specific project. Search by providing either the project's unique 'slug' (three uppercase letters, e.g., 'CFW') or its 'name'. At least one of these parameters must be provided. Slug-based search is prioritized if a slug is given.";
+  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CFW').";
   readonly zodSchema = GetProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Project",

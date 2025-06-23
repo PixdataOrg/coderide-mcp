@@ -36,7 +36,7 @@ class CodeRideServer {
     this.server = new Server(
       {
         name: 'coderide',
-        version: '0.1.0',
+        version: '0.3.2',
       },
       {
         capabilities: {
@@ -73,12 +73,12 @@ class CodeRideServer {
 
     // Create tool instances
     this.tools = [
-      new GetTaskTool(),
-      new UpdateTaskTool(),
-      new GetProjectTool(),
-      new UpdateProjectTool(),
-      new GetPromptTool(),
       new StartProjectTool(),
+      new GetPromptTool(),
+      new GetTaskTool(),
+      new GetProjectTool(),
+      new UpdateTaskTool(),
+      new UpdateProjectTool(),
       // Deactivated tools
       // new CreateTaskTool(),
       // new CreateProjectTool(),

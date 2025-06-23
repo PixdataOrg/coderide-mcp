@@ -1,6 +1,6 @@
 {
   "name": "@coderide/mcp",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Model Context Protocol server for CodeRide, task management redesigned for AI",
   "main": "dist/index.js",
   "bin": {
