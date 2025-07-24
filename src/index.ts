@@ -20,6 +20,10 @@ import { GetProjectTool } from './tools/get-project';
 import { UpdateProjectTool } from './tools/update-project';
 import { GetPromptTool } from './tools/get-prompt';
 import { StartProjectTool } from './tools/start-project';
+// New MCP tools
+import { ProjectListTool } from './tools/project-list';
+import { TaskListTool } from './tools/task-list';
+import { NextTaskTool } from './tools/next-task';
 // Deactivated tools (commented out)
 // import { CreateTaskTool } from './tools/create-task';
 // import { CreateProjectTool } from './tools/create-project';
@@ -79,6 +83,10 @@ class CodeRideServer {
       new GetProjectTool(),
       new UpdateTaskTool(),
       new UpdateProjectTool(),
+      // New MCP tools
+      new ProjectListTool(),
+      new TaskListTool(),
+      new NextTaskTool(),
       // Deactivated tools
       // new CreateTaskTool(),
       // new CreateProjectTool(),

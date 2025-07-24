@@ -75,6 +75,64 @@ export interface StartProjectApiResponse {
   [key: string]: any;
 }
 
+// --- New API Response Types for MCP Tools ---
+
+export interface ProjectListApiResponse {
+  id: string;
+  name: string;
+  description: string;
+  workspaceId: string;
+  createdAt: string;
+  icon: string;
+  slug: string;
+  status?: string; // Project status field
+  workspace: {
+    id: string;
+    name: string;
+  };
+}
+
+export interface TaskListApiResponse {
+  id: string;
+  name: string;
+  slug: string;
+  workspaceId: string;
+  status: string;
+  columns: Array<{
+    id: string; // 'to-do', 'in-progress', 'in-review', 'done'
+    name: string;
+    tasks: Array<{
+      id: string;
+      title: string;
+      number: string;
+      description: string;
+      status: string;
+      priority: string;
+      dueDate: string | null;
+      createdAt: string;
+      position: number;
+      userEmail: string | null;
+      assigneeName: string | null;
+      assigneeEmail: string | null;
+      projectId: string;
+      context: any;
+      instructions: any;
+    }>;
+  }>;
+}
+
+export interface NextTaskApiResponse {
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  dueDate: string | null;
+  assigneeEmail: string | null;
+  context: any;
+  instructions: any;
+}
+
 
 // Custom error class for API errors
 export class ApiError extends Error {
