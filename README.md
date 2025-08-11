@@ -29,12 +29,13 @@ Imagine your AI not just writing code, but truly understanding project context, 
 
 The CodeRide MCP server provides your AI with the following capabilities:
 
-*   **Task Retrieval:** Fetch specific tasks by their unique number.
+*   **Task Management:** Fetch specific tasks, list all tasks in a project, and get the next task in sequence.
 *   **Task Updates:** Modify task descriptions and statuses.
 *   **Prompt Access:** Get tailored prompts and instructions for specific tasks.
-*   **Project Details:** Retrieve information about projects by their slug.
+*   **Project Management:** List all projects, retrieve project details, and manage project knowledge.
 *   **Project Knowledge Management:** Update a project's knowledge graph and architecture diagrams.
 *   **Project Initiation:** Get the first task of a project to kickstart work.
+*   **Workflow Automation:** Navigate through task sequences with smart next-task suggestions.
 
 ## ⚙️ Getting Started
 
@@ -195,6 +196,54 @@ Retrieves the first or next recommended task for a given project, allowing an AI
 *   **User Prompt:** "AI, let's get started on the 'MobileAppV2' project. What's the first task?"
 *   **AI Action:** Calls `start_project` with `arguments: { "slug": "MBC" }`.
 *   **Outcome:** AI receives details for the initial task in the 'MBC' project, ready to begin.
+
+### `project_list` ✨ NEW
+
+Lists all projects in the user's workspace, providing an overview of available projects.
+
+**Input Schema:**
+```json
+{
+  // No input required - automatically uses workspace from API key
+}
+```
+
+**Example Use Case:**
+*   **User Prompt:** "AI, show me all my projects."
+*   **AI Action:** Calls `project_list` with no arguments.
+*   **Outcome:** AI receives a list of all projects in the workspace with their slugs, names, and basic details.
+
+### `task_list` ✨ NEW
+
+Shows all tasks within a specific project, organized by status with smart numerical sorting.
+
+**Input Schema:**
+```json
+{
+  "slug": "project-slug (e.g., 'CRD')"
+}
+```
+
+**Example Use Case:**
+*   **User Prompt:** "AI, what tasks are available in the CRD project?"
+*   **AI Action:** Calls `task_list` with `arguments: { "slug": "CRD" }`.
+*   **Outcome:** AI receives all tasks in the CRD project, sorted numerically (CRD-1, CRD-2, CRD-3...) and organized by status columns.
+
+### `next_task` ✨ NEW
+
+Retrieves the next task in sequence for workflow automation, perfect for continuous development flows.
+
+**Input Schema:**
+```json
+{
+  "number": "current-task-number (e.g., 'CRD-1')"
+}
+```
+
+**Example Use Case:**
+*   **User Prompt:** "AI, I just finished CRD-1. What's next?"
+*   **AI Action:** Calls `next_task` with `arguments: { "number": "CRD-1" }`.
+*   **Outcome:** AI receives details for CRD-2, enabling seamless workflow continuation.
 
 ## 💡 Technical Highlights
 
