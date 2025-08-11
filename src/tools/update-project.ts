@@ -19,8 +19,8 @@ const UpdateProjectSchema = z.object({
     required_error: "Project slug is required to identify the project",
     invalid_type_error: "Project slug must be a string"
   })
-  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CRD)." })
-  .describe("Project slug to identify the project to update"),
+  .regex(/^[A-Za-z]{3}$/, { message: "Project slug must be three letters (e.g., CRD or crd). Case insensitive." })
+  .describe("Project slug to identify the project to update (case insensitive)"),
   
   // Optional fields that can be updated
   project_knowledge: z.record(z.any()).optional().describe("Project knowledge graph data (JSON object)"),
@@ -70,8 +70,8 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
         properties: {
           slug: {
             type: "string",
-            pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project to be updated (e.g., 'CRD')."
+            pattern: "^[A-Za-z]{3}$",
+            description: "The unique three-letter identifier for the project to be updated (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
           },
           project_knowledge: {
             type: "object",
@@ -100,7 +100,7 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
       const { slug, ...updateData } = input;
       
       // Update project using the API endpoint
-      const url = `/project/slug/${slug}`;
+      const url = `/project/slug/${slug.toUpperCase()}`;
       logger.debug(`Making PUT request to: ${url}`);
       
       const responseData = await apiClient.put<UpdateProjectApiResponse>(url, updateData) as unknown as UpdateProjectApiResponse;

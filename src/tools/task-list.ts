@@ -16,7 +16,7 @@ const TaskListSchema = z.object({
   slug: z.string({
     required_error: "Project slug is required"
   })
-    .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CDB)." }),
+    .regex(/^[A-Za-z]{3}$/, { message: "Project slug must be three letters (e.g., CDB or cdb). Case insensitive." }),
 }).strict();
 
 /**
@@ -50,8 +50,8 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
         properties: {
           slug: {
             type: "string",
-            pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project (e.g., 'CDB')."
+            pattern: "^[A-Za-z]{3}$",
+            description: "The unique three-letter identifier for the project (e.g., 'CDB' or 'cdb'). Case insensitive - will be converted to uppercase."
           }
         },
         required: ["slug"],
@@ -67,7 +67,7 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
     logger.info('Executing task-list tool', input);
 
     try {
-      const url = `/task/project/slug/${input.slug}`;
+      const url = `/task/project/slug/${input.slug.toUpperCase()}`;
       logger.debug(`Making GET request to: ${url}`);
       
       const responseData = await apiClient.get<TaskListApiResponse>(url) as unknown as TaskListApiResponse;
@@ -109,13 +109,16 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
             status: task.status,
             priority: task.priority,
             position: task.position,
-            dueDate: task.dueDate,
-            assigneeEmail: task.assigneeEmail,
-            assigneeName: task.assigneeName,
-            createdAt: task.createdAt,
             hasContext: !!task.context,
             hasInstructions: !!task.instructions
-          })) || []
+          })).sort((a, b) => {
+            // Sort tasks by their number (e.g., CDB-1, CDB-2, CDB-3, etc.)
+            const getTaskNumber = (taskNumber: string) => {
+              const match = taskNumber.match(/^[A-Z]{3}-(\d+)$/);
+              return match ? parseInt(match[1], 10) : 0;
+            };
+            return getTaskNumber(a.number) - getTaskNumber(b.number);
+          }) || []
         })) || []
       };
     } catch (error) {

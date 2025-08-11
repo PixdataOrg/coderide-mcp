@@ -16,7 +16,7 @@ import { logger } from '../utils/logger';
 const GetTaskSchema = z.object({
   // Task number (required)
   number: z.string()
-    .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1)." })
+    .regex(/^[A-Za-z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1 or crd-1). Case insensitive." })
     .describe("Task number identifier (e.g., 'CRD-1')"),
 }).strict();
 
@@ -51,8 +51,8 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
         properties: {
           number: {
             type: "string",
-            pattern: "^[A-Z]{3}-\\d+$",
-            description: "The unique task number identifier (e.g., 'CRD-1'). Must be in the format: three uppercase letters, a hyphen, and one or more digits."
+            pattern: "^[A-Za-z]{3}-\\d+$",
+            description: "The unique task number identifier (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
           }
         },
         required: ["number"],

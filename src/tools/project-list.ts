@@ -73,10 +73,7 @@ export class ProjectListTool extends BaseTool<typeof ProjectListSchema> {
           name: project.name,
           description: project.description,
           slug: project.slug,
-          icon: project.icon,
-          status: project.status || 'unknown',
-          workspaceId: project.workspaceId,
-          createdAt: project.createdAt,
+         // status: project.status || 'draft', // Fallback for projects without status
           workspace: {
             id: project.workspace?.id || '',
             name: project.workspace?.name || ''

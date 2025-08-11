@@ -15,7 +15,7 @@ const GetPromptSchema = z.object({
   // Task number (e.g., "CRD-1")
   number: z.string({
     required_error: "Task number is required"
-  }).regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1)." }),
+  }).regex(/^[A-Za-z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1 or crd-1). Case insensitive." }),
 }).strict();
 
 /**
@@ -49,8 +49,8 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
         properties: {
           number: {
             type: "string",
-            pattern: "^[A-Z]{3}-\\d+$",
-            description: "The unique identifier for the task (e.g., 'CRD-1'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+            pattern: "^[A-Za-z]{3}-\\d+$",
+            description: "The unique identifier for the task (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
           }
         },
         required: ["number"],

@@ -13,9 +13,9 @@ import { logger } from '../utils/logger';
  */
 const NextTaskSchema = z.object({
   // Task number (e.g., "CDB-23")
-  taskNumber: z.string({
+  number: z.string({
     required_error: "Task number is required"
-  }).regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CDB-23)." }),
+  }).regex(/^[A-Za-z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CDB-23 or cdb-23). Case insensitive." }),
 }).strict();
 
 /**
@@ -47,13 +47,13 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
       inputSchema: {
         type: "object",
         properties: {
-          taskNumber: {
+          number: {
             type: "string",
-            pattern: "^[A-Z]{3}-\\d+$",
-            description: "The current task number to find the next task for (e.g., 'CDB-23'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+            pattern: "^[A-Za-z]{3}-\\d+$",
+            description: "The current task number to find the next task for (e.g., 'CDB-23' or 'cdb-23'). Case insensitive - will be converted to uppercase."
           }
         },
-        required: ["taskNumber"],
+        required: ["number"],
         additionalProperties: false
       }
     };
@@ -66,28 +66,28 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
     logger.info('Executing next-task tool', input);
 
     try {
-      const url = `/task/number/${input.taskNumber}/next`;
+      const url = `/task/number/${input.number.toUpperCase()}/next`;
       logger.debug(`Making GET request to: ${url}`);
       
       const responseData = await apiClient.get<NextTaskApiResponse>(url) as unknown as NextTaskApiResponse;
       
       if (!responseData) {
-        logger.warn(`No next task found for ${input.taskNumber} from ${url}`);
+        logger.warn(`No next task found for ${input.number} from ${url}`);
         return {
           isError: true,
-          content: [{ type: "text", text: `No next task found after '${input.taskNumber}'` }]
+          content: [{ type: "text", text: `No next task found after '${input.number}'` }]
         };
       }
       
       // Extract project slug and calculate sequence info
-      const currentProjectSlug = input.taskNumber.split('-')[0];
-      const currentNumber = parseInt(input.taskNumber.split('-')[1]);
+      const currentProjectSlug = input.number.toUpperCase().split('-')[0];
+      const currentNumber = parseInt(input.number.split('-')[1]);
       const nextNumber = currentNumber + 1;
       
       // Return formatted next task details
       return {
         currentTask: {
-          number: input.taskNumber,
+          number: input.number.toUpperCase(),
           projectSlug: currentProjectSlug,
           sequenceNumber: currentNumber
         },
@@ -97,15 +97,13 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
           description: responseData.description,
           status: responseData.status,
           priority: responseData.priority,
-          dueDate: responseData.dueDate,
-          assigneeEmail: responseData.assigneeEmail,
           sequenceNumber: nextNumber,
           hasContext: !!responseData.context,
           hasInstructions: !!responseData.instructions
         },
         sequenceInfo: {
           projectSlug: currentProjectSlug,
-          progression: `${input.taskNumber} → ${responseData.number}`,
+          progression: `${input.number.toUpperCase()} → ${responseData.number}`,
           increment: 1
         }
       };
@@ -116,8 +114,8 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
       // Provide more specific error messages based on common scenarios
       let userFriendlyMessage = errorMessage;
       if (errorMessage.includes('not found')) {
-        const projectSlug = input.taskNumber.split('-')[0];
-        const currentNumber = parseInt(input.taskNumber.split('-')[1]);
+        const projectSlug = input.number.toUpperCase().split('-')[0];
+        const currentNumber = parseInt(input.number.split('-')[1]);
         const expectedNext = `${projectSlug}-${currentNumber + 1}`;
         userFriendlyMessage = `Next task '${expectedNext}' not found. This might be the last task in the project or the next task hasn't been created yet.`;
       }
