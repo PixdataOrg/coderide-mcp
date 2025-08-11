@@ -16,7 +16,7 @@ const GetProjectSchema = z.object({
   slug: z.string({
     required_error: "Project slug is required"
   })
-    .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CRD)." }),
+    .regex(/^[A-Za-z]{3}$/, { message: "Project slug must be three letters (e.g., CRD or crd). Case insensitive." }),
 }).strict();
 
 /**
@@ -50,8 +50,8 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
         properties: {
           slug: {
             type: "string",
-            pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project (e.g., 'CRD')."
+            pattern: "^[A-Za-z]{3}$",
+            description: "The unique three-letter identifier for the project (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
           }
         },
         required: ["slug"],
@@ -67,7 +67,7 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     logger.info('Executing get-project tool', input);
 
     try {
-      const url = `/project/slug/${input.slug}`;
+      const url = `/project/slug/${input.slug.toUpperCase()}`;
       logger.debug(`Making GET request to: ${url}`);
       
       const responseData = await apiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;

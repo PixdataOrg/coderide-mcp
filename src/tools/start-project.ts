@@ -18,8 +18,8 @@ const StartProjectSchema = z.object({
   slug: z.string({
     required_error: "Project slug is required"
   })
-  .regex(/^[A-Z]{3}$/, { message: "Project slug must be three uppercase letters (e.g., CRD)." })
-  .describe("Project slug identifier (e.g., 'CRD')"),
+  .regex(/^[A-Za-z]{3}$/, { message: "Project slug must be three letters (e.g., CRD or crd). Case insensitive." })
+  .describe("Project slug identifier (e.g., 'CRD' or 'crd'). Case insensitive"),
 }).strict();
 
 /**
@@ -53,8 +53,8 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
         properties: {
           slug: {
             type: "string",
-            pattern: "^[A-Z]{3}$",
-            description: "The unique three-letter uppercase identifier for the project (e.g., 'CRD') for which the first task's prompt is to be retrieved."
+            pattern: "^[A-Za-z]{3}$",
+            description: "The unique three-letter identifier for the project (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
           }
         },
         required: ["slug"],
@@ -71,7 +71,7 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
 
     try {
       // Get the first task of the project using the new endpoint
-      const url = `/project/slug/${input.slug}/first-task`;
+      const url = `/project/slug/${input.slug.toUpperCase()}/first-task`;
       logger.debug(`Making GET request to: ${url}`);
       
       const responseData = await apiClient.get<StartProjectApiResponse>(url) as unknown as StartProjectApiResponse;

@@ -19,8 +19,8 @@ const UpdateTaskSchema = z.object({
     required_error: "Task number is required to identify the task",
     invalid_type_error: "Task number must be a string"
   })
-  .regex(/^[A-Z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1)." })
-  .describe("Task number to identify the task to update"),
+  .regex(/^[A-Za-z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1 or crd-1). Case insensitive." })
+  .describe("Task number to identify the task to update (case insensitive)"),
   
   // Optional fields that can be updated
   description: z.string().optional().describe("New task description"),
@@ -81,8 +81,8 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
         properties: {
           number: {
             type: "string",
-            pattern: "^[A-Z]{3}-\\d+$",
-            description: "The unique identifier for the task to be updated (e.g., 'CRD-1'). Must follow the format: three uppercase letters, a hyphen, and one or more digits."
+            pattern: "^[A-Za-z]{3}-\\d+$",
+            description: "The unique identifier for the task to be updated (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
           },
           description: {
             type: "string",
