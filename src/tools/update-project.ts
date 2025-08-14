@@ -101,11 +101,11 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
           project_knowledge: {
             type: "object",
             // No specific properties for project_knowledge, as it's z.record(z.any())
-            description: "Optional. A JSON object representing the project's knowledge graph. If provided, this will update the existing knowledge data."
+            description: "Optional. A JSON object representing the project's knowledge graph. If provided, this will update the existing knowledge data. (max 50 components, 20 technologies, 5000 chars for notes)"
           },
           project_diagram: {
             type: "string",
-            description: "Optional. A string containing the project's structure diagram in Mermaid.js format. If provided, this will update the existing diagram."
+            description: "Optional. A string containing the project's structure diagram in Mermaid.js format. If provided, this will update the existing diagram. (max 15000 characters)"
           }
         },
         required: ["slug"], // Zod .refine() handles the "at least one update field" logic at runtime.

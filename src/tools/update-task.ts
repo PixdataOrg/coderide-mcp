@@ -89,7 +89,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           },
           description: {
             type: "string",
-            description: "Optional. The new description for the task. If provided, it will replace the existing task description."
+            description: "Optional. The new description for the task. If provided, it will replace the existing task description. (max 2000 characters)"
           },
           status: {
             type: "string",
