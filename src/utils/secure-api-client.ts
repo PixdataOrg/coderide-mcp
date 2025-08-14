@@ -336,6 +336,132 @@ export class SecureApiClient {
 // Export singleton instance
 export const secureApiClient = new SecureApiClient();
 
-// Export the original API client for backward compatibility
-export { apiClient } from './api-client';
-export * from './api-client';
+// API Response Type Definitions
+export interface TaskApiResponse {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  project_slug: string;
+  created_at: string;
+  updated_at: string;
+  prompt?: string;
+  taskPrompt?: string;
+  agent?: string;
+  agent_prompt?: string;
+  context?: string;
+  instructions?: string;
+  error?: string;
+}
+
+export interface ProjectApiResponse {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  projectKnowledge?: any;
+  projectDiagram?: string;
+  projectStandards?: any;
+  error?: string;
+}
+
+export interface StartProjectApiResponse {
+  project: ProjectApiResponse;
+  task: TaskApiResponse;
+  error?: string;
+}
+
+export interface NextTaskApiResponse {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  project_slug: string;
+  created_at: string;
+  updated_at: string;
+  prompt?: string;
+  context?: string;
+  instructions?: string;
+  error?: string;
+}
+
+export interface ProjectListApiResponse {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  workspace?: any;
+}
+
+export interface TaskListApiResponse {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  project: {
+    id: string;
+    slug: string;
+    name: string;
+    description: string;
+    status: string;
+  };
+  columns: Array<{
+    id: string;
+    name: string;
+    status: string;
+    tasks: Array<{
+      id: string;
+      number: string;
+      title: string;
+      description: string;
+      status: string;
+      priority: string;
+      created_at: string;
+      updated_at: string;
+      position?: number;
+      context?: string;
+      instructions?: string;
+    }>;
+  }>;
+  error?: string;
+}
+
+export interface UpdateProjectApiResponse {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  status: string;
+  project_knowledge?: any;
+  project_diagram?: string;
+  updated_at: string;
+  success?: boolean;
+  message?: string;
+  project?: any;
+  error?: string;
+}
+
+export interface UpdateTaskApiResponse {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  project_slug: string;
+  updated_at: string;
+  success?: boolean;
+  message?: string;
+  task?: any;
+  error?: string;
+}
