@@ -1,6 +1,6 @@
 {
   "name": "@coderide/mcp",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Model Context Protocol server for CodeRide, task management redesigned for AI",
   "main": "dist/index.js",
   "bin": {
@@ -15,8 +15,7 @@
     "build": "tsc",
     "postbuild": "chmod +x dist/index.js",
     "start": "npm run build && node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "test": "node test/test-server.js"
+    "dev": "ts-node src/index.ts"
   },
   "keywords": [
     "mcp",

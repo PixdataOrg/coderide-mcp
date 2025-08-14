@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, UpdateTaskApiResponse } from '../utils/api-client'; // Import UpdateTaskApiResponse
+import { secureApiClient, UpdateTaskApiResponse } from '../utils/secure-api-client'; // Use secure API client
 import { logger } from '../utils/logger';
 
 // Removed local UpdateTaskResponse as UpdateTaskApiResponse from api-client.ts will be used.
@@ -22,8 +22,11 @@ const UpdateTaskSchema = z.object({
   .regex(/^[A-Za-z]{3}-\d+$/, { message: "Task number must be in the format ABC-123 (e.g., CRD-1 or crd-1). Case insensitive." })
   .describe("Task number to identify the task to update (case insensitive)"),
   
-  // Optional fields that can be updated
-  description: z.string().optional().describe("New task description"),
+  // Optional fields that can be updated with security constraints
+  description: z.string()
+    .max(2000, "Description cannot exceed 2000 characters")
+    .optional()
+    .describe("New task description"),
   status: z.enum(['to-do', 'in-progress', 'completed'], {
     invalid_type_error: "Status must be one of: to-do, in-progress, completed"
   }).optional().describe("New task status"),
@@ -86,7 +89,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           },
           description: {
             type: "string",
-            description: "Optional. The new description for the task. If provided, it will replace the existing task description."
+            description: "Optional. The new description for the task. If provided, it will replace the existing task description. (max 2000 characters)"
           },
           status: {
             type: "string",
@@ -117,7 +120,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
       const url = `/task/number/${taskNumber}`;
       logger.debug(`Making PUT request to: ${url}`);
       
-      const responseData = await apiClient.put<UpdateTaskApiResponse>(url, updateData) as unknown as UpdateTaskApiResponse;
+      const responseData = await secureApiClient.put<UpdateTaskApiResponse>(url, updateData) as unknown as UpdateTaskApiResponse;
       
       if (!responseData.success) {
         const apiErrorMessage = responseData.message || 'API reported update failure without a specific message.';

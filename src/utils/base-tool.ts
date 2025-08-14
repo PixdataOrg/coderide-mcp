@@ -1,9 +1,11 @@
 /**
- * Base tool class for MCP tools
+ * Base tool class for MCP tools with security enhancements
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { z } from 'zod';
 import { logger } from './logger';
+import { validateNoTokenPassthrough, redactSensitiveTokens } from './token-security';
+import { InputValidator, ValidationError, SecurityError } from './input-validator';
 
 /**
  * Abstract base class for all MCP tools
@@ -72,20 +74,153 @@ export abstract class BaseTool<T extends z.ZodType> {
   abstract getMCPToolDefinition(): MCPToolDefinition;
 
   /**
-   * Validate input against the Zod schema.
+   * Validate input against the Zod schema with security enhancements.
    */
   async validateInput(input: unknown): Promise<z.infer<T>> {
+    const requestId = InputValidator.generateRequestId();
+    
     try {
-      return this.zodSchema.parse(input);
+      // Log tool execution start
+      logger.debug(`Tool ${this.name} validation started [${requestId}]`);
+      
+      // CRITICAL: Check for token passthrough (MCP Security Requirement)
+      validateNoTokenPassthrough(input, `tool ${this.name} input`);
+      
+      // Validate with Zod schema
+      const validatedInput = this.zodSchema.parse(input);
+      
+      // Additional security validation for common fields
+      if (validatedInput && typeof validatedInput === 'object') {
+        this.performSecurityValidation(validatedInput, requestId);
+      }
+      
+      logger.debug(`Tool ${this.name} validation successful [${requestId}]`);
+      return validatedInput;
     } catch (error) {
-      logger.error(`Validation error in tool ${this.name}: ${(error as Error).message}`, error instanceof Error ? error : undefined);
-      throw error; // Re-throw to be handled by the caller or MCP framework
+      if (error instanceof z.ZodError) {
+        const validationError = new ValidationError(`Validation error in tool ${this.name}: ${error.message}`);
+        logger.error(`Validation failed for tool ${this.name} [${requestId}]: ${error.message}`);
+        throw validationError;
+      } else if (error instanceof ValidationError || error instanceof SecurityError) {
+        logger.error(`Security validation failed for tool ${this.name} [${requestId}]: ${error.message}`);
+        throw error;
+      } else {
+        logger.error(`Unexpected error in tool ${this.name} [${requestId}]: ${(error as Error).message}`);
+        throw new ValidationError(`Validation failed for tool ${this.name}`);
+      }
     }
   }
 
   /**
-   * Execute the tool with validated input.
+   * Perform additional security validation on common input fields
+   * Enhanced with Priority 4 security features
+   */
+  private performSecurityValidation(input: any, requestId: string): void {
+    // Priority 4: Validate user permissions and detect suspicious content
+    try {
+      InputValidator.validateUserPermissions(input, `tool ${this.name} input`);
+    } catch (error) {
+      throw new SecurityError(`Security validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    // Priority 4: Rate limiting for update operations (only for update tools)
+    if (this.name.includes('update')) {
+      const identifier = input.slug || input.number || 'unknown';
+      try {
+        InputValidator.validateRateLimit(this.name, identifier);
+      } catch (error) {
+        throw new SecurityError(`Rate limit validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Validate project slugs
+    if (input.slug && typeof input.slug === 'string') {
+      try {
+        input.slug = InputValidator.validateProjectSlug(input.slug);
+      } catch (error) {
+        throw new ValidationError(`Invalid project slug: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Validate task numbers
+    if (input.number && typeof input.number === 'string') {
+      try {
+        input.number = InputValidator.validateTaskNumber(input.number);
+      } catch (error) {
+        throw new ValidationError(`Invalid task number: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Validate task status
+    if (input.status && typeof input.status === 'string') {
+      try {
+        input.status = InputValidator.validateTaskStatus(input.status);
+      } catch (error) {
+        throw new ValidationError(`Invalid task status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Validate and sanitize descriptions
+    if (input.description !== undefined) {
+      try {
+        input.description = InputValidator.sanitizeDescription(input.description);
+      } catch (error) {
+        throw new ValidationError(`Invalid description: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    // Validate JSON inputs (project_knowledge, project_diagram)
+    if (input.project_knowledge !== undefined) {
+      try {
+        input.project_knowledge = InputValidator.validateJsonInput(input.project_knowledge);
+      } catch (error) {
+        throw new ValidationError(`Invalid project knowledge: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    if (input.project_diagram && typeof input.project_diagram === 'string') {
+      try {
+        input.project_diagram = InputValidator.sanitizeDescription(input.project_diagram);
+      } catch (error) {
+        throw new ValidationError(`Invalid project diagram: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+  }
+
+  /**
+   * Execute the tool with validated input and security logging.
    * Must be implemented by subclasses.
    */
   abstract execute(input: z.infer<T>): Promise<unknown>;
+
+  /**
+   * Secure execute wrapper that handles logging and error management
+   */
+  async secureExecute(input: z.infer<T>): Promise<unknown> {
+    const requestId = InputValidator.generateRequestId();
+    
+    try {
+      logger.info(`Tool ${this.name} execution started [${requestId}]`);
+      
+      const result = await this.execute(input);
+      
+      // CRITICAL: Redact any sensitive tokens from output (MCP Security Requirement)
+      const tokenRedactedResult = redactSensitiveTokens(result);
+      
+      // Sanitize output to remove other sensitive information
+      const sanitizedResult = InputValidator.sanitizeOutput(tokenRedactedResult);
+      
+      logger.info(`Tool ${this.name} execution completed successfully [${requestId}]`);
+      return sanitizedResult;
+    } catch (error) {
+      logger.error(`Tool ${this.name} execution failed [${requestId}]: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Re-throw with context but don't expose internal details
+      if (error instanceof ValidationError || error instanceof SecurityError) {
+        throw error;
+      } else {
+        throw new Error(`Tool execution failed: ${this.name}`);
+      }
+    }
+  }
 }

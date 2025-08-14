@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, ProjectApiResponse } from '../utils/api-client'; // Import ProjectApiResponse
+import { secureApiClient, ProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
 import { logger } from '../utils/logger';
 
 /**
@@ -70,7 +70,7 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
       const url = `/project/slug/${input.slug.toUpperCase()}`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
+      const responseData = await secureApiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
       
       // Return project data according to the new schema
       return {

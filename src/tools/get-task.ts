@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, TaskApiResponse } from '../utils/api-client'; // Import TaskApiResponse
+import { secureApiClient, TaskApiResponse } from '../utils/secure-api-client'; // Use secure API client
 import { logger } from '../utils/logger';
 
 // Removed local GetTasksResponse and TaskData as TaskApiResponse from api-client.ts will be used.
@@ -77,7 +77,7 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
       // For now, assuming the endpoint only takes :taskNumber and returns a single task.
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
+      const responseData = await secureApiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
       // const responseData: TaskApiResponse = axiosResponse.data; // This was the previous incorrect line
 
       // If responseData is null, undefined, or an empty object,
