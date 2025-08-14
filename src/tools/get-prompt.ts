@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, TaskApiResponse } from '../utils/api-client'; // Import TaskApiResponse
+import { secureApiClient, TaskApiResponse } from '../utils/secure-api-client'; // Use secure API client
 import { logger } from '../utils/logger';
 
 /**
@@ -71,7 +71,7 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
       const url = `/task/number/${taskNumber}/prompt`; 
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
+      const responseData = await secureApiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
       
       if (!responseData) { 
         logger.warn(`No response data received for task number ${taskNumber} from ${url}. This might indicate the task has no prompt or an API issue.`);

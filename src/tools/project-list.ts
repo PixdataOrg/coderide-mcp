@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, ProjectListApiResponse } from '../utils/api-client';
+import { secureApiClient, ProjectListApiResponse } from '../utils/secure-api-client';
 import { logger } from '../utils/logger';
 
 /**
@@ -59,7 +59,7 @@ export class ProjectListTool extends BaseTool<typeof ProjectListSchema> {
       const url = `/project/list`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<ProjectListApiResponse[]>(url) as unknown as ProjectListApiResponse[];
+      const responseData = await secureApiClient.get<ProjectListApiResponse[]>(url) as unknown as ProjectListApiResponse[];
       
       if (!responseData || !Array.isArray(responseData)) {
         logger.warn(`No projects found or invalid response format from ${url}`);

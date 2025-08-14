@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, NextTaskApiResponse } from '../utils/api-client';
+import { secureApiClient, NextTaskApiResponse } from '../utils/secure-api-client';
 import { logger } from '../utils/logger';
 
 /**
@@ -69,7 +69,7 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
       const url = `/task/number/${input.number.toUpperCase()}/next`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<NextTaskApiResponse>(url) as unknown as NextTaskApiResponse;
+      const responseData = await secureApiClient.get<NextTaskApiResponse>(url) as unknown as NextTaskApiResponse;
       
       if (!responseData) {
         logger.warn(`No next task found for ${input.number} from ${url}`);

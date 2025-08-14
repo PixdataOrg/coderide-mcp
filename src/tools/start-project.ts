@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, StartProjectApiResponse } from '../utils/api-client'; // Import StartProjectApiResponse
+import { secureApiClient, StartProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
 import { logger } from '../utils/logger';
 
 // Removed unused local interfaces TaskData, GetTasksResponse, ProjectData, GetProjectResponse
@@ -74,7 +74,7 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
       const url = `/project/slug/${input.slug.toUpperCase()}/first-task`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<StartProjectApiResponse>(url) as unknown as StartProjectApiResponse;
+      const responseData = await secureApiClient.get<StartProjectApiResponse>(url) as unknown as StartProjectApiResponse;
       // const responseData: StartProjectApiResponse = axiosResponse.data; // This was the previous incorrect line
       
       if (!responseData || responseData.error) { 

@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, TaskListApiResponse } from '../utils/api-client';
+import { secureApiClient, TaskListApiResponse } from '../utils/secure-api-client';
 import { logger } from '../utils/logger';
 
 /**
@@ -70,7 +70,7 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
       const url = `/task/project/slug/${input.slug.toUpperCase()}`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await apiClient.get<TaskListApiResponse>(url) as unknown as TaskListApiResponse;
+      const responseData = await secureApiClient.get<TaskListApiResponse>(url) as unknown as TaskListApiResponse;
       
       if (!responseData) {
         logger.warn(`No project found or invalid response format from ${url}`);

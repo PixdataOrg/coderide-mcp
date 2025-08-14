@@ -12,6 +12,7 @@ import { z } from 'zod';
 // Import utilities
 import { logger } from './utils/logger';
 import { env } from './utils/env';
+import { tokenSecurityManager } from './utils/token-security';
 
 // Import tools
 import { GetTaskTool } from './tools/get-task';
@@ -40,7 +41,7 @@ class CodeRideServer {
     this.server = new Server(
       {
         name: 'coderide',
-        version: '0.4.0',
+        version: '0.5.0',
       },
       {
         capabilities: {
@@ -114,11 +115,11 @@ class CodeRideServer {
       }
 
       try {
-        // Validate input against schema
+        // Validate input against schema with security checks
         const validatedInput = await tool.validateInput(request.params.arguments);
         
-        // Execute the tool with validated input
-        const result = await tool.execute(validatedInput);
+        // Execute the tool with secure wrapper
+        const result = await tool.secureExecute(validatedInput);
         
         // Return successful response with compact JSON formatting
         return {
@@ -186,6 +187,10 @@ class CodeRideServer {
    */
   private async shutdown(): Promise<void> {
     logger.info('Shutting down CodeRide MCP server');
+    
+    // Shutdown token security manager
+    tokenSecurityManager.shutdown();
+    
     await this.server.close();
     logger.info('Server shutdown complete');
   }

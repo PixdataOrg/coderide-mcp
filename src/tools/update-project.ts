@@ -5,10 +5,32 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { apiClient, UpdateProjectApiResponse } from '../utils/api-client'; // Import UpdateProjectApiResponse
+import { secureApiClient, UpdateProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
 import { logger } from '../utils/logger';
 
 // Removed local UpdateProjectResponse as UpdateProjectApiResponse from api-client.ts will be used.
+
+/**
+ * Secure schema for project knowledge data
+ * Prevents JSON injection while maintaining flexibility
+ */
+const ProjectKnowledgeSchema = z.object({
+  // Core project information
+  components: z.array(z.string().max(100, "Component name too long")).max(50, "Too many components").optional(),
+  dependencies: z.array(z.string().max(100, "Dependency name too long")).max(50, "Too many dependencies").optional(),
+  technologies: z.array(z.string().max(50, "Technology name too long")).max(20, "Too many technologies").optional(),
+  
+  // Architecture and design
+  architecture: z.string().max(2000, "Architecture description too long").optional(),
+  patterns: z.array(z.string().max(100, "Pattern name too long")).max(20, "Too many patterns").optional(),
+  
+  // Documentation and notes
+  notes: z.string().max(5000, "Notes too long").optional(),
+  links: z.array(z.string().url("Invalid URL format").max(500, "URL too long")).max(10, "Too many links").optional(),
+  
+  // Custom metadata (controlled)
+  metadata: z.record(z.string().max(500, "Metadata value too long")).optional(),
+}).strict();
 
 /**
  * Schema for the update-project tool input
@@ -22,9 +44,12 @@ const UpdateProjectSchema = z.object({
   .regex(/^[A-Za-z]{3}$/, { message: "Project slug must be three letters (e.g., CRD or crd). Case insensitive." })
   .describe("Project slug to identify the project to update (case insensitive)"),
   
-  // Optional fields that can be updated
-  project_knowledge: z.record(z.any()).optional().describe("Project knowledge graph data (JSON object)"),
-  project_diagram: z.string().optional().describe("Project structure diagram (Mermaid.js format)"),
+  // Optional fields that can be updated with security constraints
+  project_knowledge: ProjectKnowledgeSchema.optional().describe("Project knowledge graph data (structured JSON object with size limits)"),
+  project_diagram: z.string()
+    .max(15000, "Project diagram cannot exceed 15000 characters")
+    .optional()
+    .describe("Project structure diagram (Mermaid.js format)"),
 }).strict().refine(
   // Ensure at least one field to update is provided
   (data) => {
@@ -103,7 +128,7 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
       const url = `/project/slug/${slug.toUpperCase()}`;
       logger.debug(`Making PUT request to: ${url}`);
       
-      const responseData = await apiClient.put<UpdateProjectApiResponse>(url, updateData) as unknown as UpdateProjectApiResponse;
+      const responseData = await secureApiClient.put<UpdateProjectApiResponse>(url, updateData) as unknown as UpdateProjectApiResponse;
 
       if (!responseData.success) {
         const apiErrorMessage = responseData.message || 'API reported update failure without a specific message.';
