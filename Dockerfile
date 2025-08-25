@@ -14,8 +14,18 @@ RUN npm install --ignore-scripts
 COPY . .
 RUN npm run build
 
+# Create non-root user for security (fixes CVE-2019-5736 and OWASP Rule #2)
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S coderide -u 1001 -G nodejs
+
+# Change ownership of app directory to non-root user
+RUN chown -R coderide:nodejs /app
+
+# Switch to non-root user
+USER coderide
+
 # Default environment
 ENV NODE_ENV=production
 
-# Use stdio entrypoint
+# Use stdio entrypoint with non-root user
 ENTRYPOINT ["node", "dist/index.js"]
