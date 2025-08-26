@@ -251,10 +251,25 @@ Retrieves the next task in sequence for workflow automation, perfect for continu
 
 ## 💡 Technical Highlights
 
+*   **Security-First Design:** Comprehensive input validation, secure API client with retry logic, and workspace-scoped authentication ensure data integrity and safe AI operations.
+*   **Production-Ready Reliability:** Exponential backoff retry mechanisms, 90-second timeouts, and stable MCP SDK version (^1.0.3) provide enterprise-grade stability.
 *   **Workspace-Centered Authentication:** API keys are tied to specific workspaces. All operations are automatically scoped, simplifying requests and enhancing security. No need to pass `workspaceId`!
 *   **User-Friendly Identifiers:** Interact with tasks and projects using human-readable numbers (e.g., "TCA-3") and slugs (e.g., "TCA") instead of internal UUIDs.
-*   **Optimized Responses:** All tools return compact JSON, minimizing token usage for LLM communication.
-*   **Robust API Interaction:** Uses the official CodeRide API (`https://api.coderide.ai` by default) for all operations.
+*   **Optimized for AI Efficiency:** Compact JSON responses minimize token usage, while smart error handling prevents unnecessary retries on validation errors.
+*   **Robust API Interaction:** Uses the official CodeRide API (`https://api.coderide.ai` by default) with comprehensive logging and error handling for all operations.
+
+## 🛡️ Security
+
+CodeRide MCP takes security seriously. We welcome responsible security research and have established a comprehensive bug bounty program with rewards ranging from €9 to €119.
+
+For security vulnerabilities, please see our [Security Policy](SECURITY.md) for reporting guidelines and reward information.
+
+## 🔧 Recent Improvements
+
+- **Enhanced Reliability**: Implemented exponential backoff retry logic for improved connection stability
+- **Optimized Timeouts**: Increased API timeouts to 90 seconds for better handling of complex operations
+- **Stable Dependencies**: Pinned MCP SDK to stable version (^1.0.3) for consistent behavior
+- **MCP Protocol Optimizations**: Reduced timeout errors (-32001) and SSE stream disconnections
 
 ## 🔥 About CodeRide
 
@@ -266,9 +281,31 @@ Transform your development process with a tool that truly understands the synerg
 
 Discover the future of software development at [coderide.ai](https://coderide.ai).
 
+## 🔧 Troubleshooting
+
+### Common Issues
+
+**Connection Timeouts or MCP Error -32001:**
+- The recent improvements have significantly reduced these issues
+- Ensure you're using the latest version: `npx -y @coderide/mcp@latest`
+- Check your API key is correctly set in the environment configuration
+
+**Authentication Errors:**
+- Verify your CodeRide API key is valid and has the correct permissions
+- Ensure the API key is properly set in your MCP client configuration
+- API keys are workspace-scoped - make sure you're using the right workspace
+
+**Tool Not Found Errors:**
+- Restart your MCP client after configuration changes
+- Verify the server is properly configured in your MCP client settings
+
+For additional support, please [open an issue](https://github.com/PixdataOrg/coderide-mcp/issues) with detailed error information.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit issues, fork the repository, and create pull requests.
+
+For security-related contributions, please see our [Security Policy](SECURITY.md).
 
 ## 🔖 License
 
