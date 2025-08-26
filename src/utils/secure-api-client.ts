@@ -22,7 +22,9 @@ export class SecureApiClient {
   private readonly client: AxiosInstance;
   private readonly rateLimitStore = new Map<string, RateLimitEntry>();
   private readonly maxRequestsPerMinute = 100;
-  private readonly requestTimeout = 30000; // 30 seconds
+  private readonly requestTimeout = 90000; // 90 seconds (increased from 30)
+  private readonly maxRetries = 3; // Maximum retry attempts
+  private readonly baseRetryDelay = 1000; // Base delay for exponential backoff (1 second)
 
   constructor() {
     // Validate and secure API configuration
@@ -189,6 +191,47 @@ export class SecureApiClient {
   }
 
   /**
+   * Execute request with retry logic and exponential backoff
+   */
+  private async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    context: string,
+    attempt: number = 1
+  ): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      // Don't retry on certain errors
+      if (error instanceof SecurityError || error instanceof ValidationError) {
+        throw error;
+      }
+
+      // Check if we should retry
+      if (attempt >= this.maxRetries) {
+        logger.error(`Max retries (${this.maxRetries}) exceeded for ${context}`);
+        throw error;
+      }
+
+      // Calculate exponential backoff delay
+      const delay = this.baseRetryDelay * Math.pow(2, attempt - 1);
+      const jitter = Math.random() * 0.1 * delay; // Add 10% jitter
+      const totalDelay = delay + jitter;
+
+      logger.warn(`${context} failed (attempt ${attempt}/${this.maxRetries}), retrying in ${Math.round(totalDelay)}ms`, {
+        error: error instanceof Error ? error.message : String(error),
+        attempt,
+        delay: Math.round(totalDelay)
+      });
+
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, totalDelay));
+
+      // Recursive retry
+      return this.executeWithRetry(operation, context, attempt + 1);
+    }
+  }
+
+  /**
    * Check rate limit for requests
    */
   private async checkRateLimit(identifier: string = 'global'): Promise<void> {
@@ -225,13 +268,13 @@ export class SecureApiClient {
     // Check rate limit
     await this.checkRateLimit(options.rateLimitId);
     
-    try {
-      const response = await this.client.get(validatedEndpoint);
-      return response as T;
-    } catch (error) {
-      logger.error(`GET request failed: ${validatedEndpoint}`);
-      throw error;
-    }
+    return this.executeWithRetry(
+      async () => {
+        const response = await this.client.get(validatedEndpoint);
+        return response as T;
+      },
+      `GET ${validatedEndpoint}`
+    );
   }
 
   /**
@@ -247,13 +290,13 @@ export class SecureApiClient {
     // Check rate limit
     await this.checkRateLimit(options.rateLimitId);
     
-    try {
-      const response = await this.client.post(validatedEndpoint, validatedData);
-      return response as T;
-    } catch (error) {
-      logger.error(`POST request failed: ${validatedEndpoint}`);
-      throw error;
-    }
+    return this.executeWithRetry(
+      async () => {
+        const response = await this.client.post(validatedEndpoint, validatedData);
+        return response as T;
+      },
+      `POST ${validatedEndpoint}`
+    );
   }
 
   /**
@@ -269,13 +312,13 @@ export class SecureApiClient {
     // Check rate limit
     await this.checkRateLimit(options.rateLimitId);
     
-    try {
-      const response = await this.client.put(validatedEndpoint, validatedData);
-      return response as T;
-    } catch (error) {
-      logger.error(`PUT request failed: ${validatedEndpoint}`);
-      throw error;
-    }
+    return this.executeWithRetry(
+      async () => {
+        const response = await this.client.put(validatedEndpoint, validatedData);
+        return response as T;
+      },
+      `PUT ${validatedEndpoint}`
+    );
   }
 
   /**
@@ -288,13 +331,13 @@ export class SecureApiClient {
     // Check rate limit
     await this.checkRateLimit(options.rateLimitId);
     
-    try {
-      const response = await this.client.delete(validatedEndpoint);
-      return response as T;
-    } catch (error) {
-      logger.error(`DELETE request failed: ${validatedEndpoint}`);
-      throw error;
-    }
+    return this.executeWithRetry(
+      async () => {
+        const response = await this.client.delete(validatedEndpoint);
+        return response as T;
+      },
+      `DELETE ${validatedEndpoint}`
+    );
   }
 
   /**
