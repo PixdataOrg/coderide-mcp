@@ -1,10 +1,11 @@
 /**
  * Secure API client implementing MCP security best practices
  * Focuses on input validation, proper authentication, and secure request handling
+ * Refactored for Smithery-native configuration with dependency injection
  */
 import axios, { AxiosError, AxiosRequestConfig, AxiosInstance } from 'axios';
 import { logger } from './logger.js';
-import { env } from './env.js';
+import { ApiConfig, validateApiConfig, isProductionMode } from './env.js';
 import { InputValidator, ValidationError, SecurityError } from './input-validator.js';
 
 // Rate limiting store (simple in-memory implementation)
@@ -15,10 +16,10 @@ interface RateLimitEntry {
 
 /**
  * Secure API client with comprehensive security measures
+ * Refactored for dependency injection and clean architecture
  */
 export class SecureApiClient {
-  private readonly apiKey: string;
-  private readonly baseUrl: string;
+  private readonly config: ApiConfig;
   private readonly client: AxiosInstance;
   private readonly rateLimitStore = new Map<string, RateLimitEntry>();
   private readonly maxRequestsPerMinute = 100;
@@ -26,15 +27,23 @@ export class SecureApiClient {
   private readonly maxRetries = 3; // Maximum retry attempts
   private readonly baseRetryDelay = 1000; // Base delay for exponential backoff (1 second)
 
-  constructor() {
-    // Validate and secure API configuration
-    this.apiKey = this.validateApiKey(env.CODERIDE_API_KEY);
-    this.baseUrl = this.validateBaseUrl(env.CODERIDE_API_URL);
+  constructor(config: ApiConfig) {
+    // Validate configuration for security compliance
+    validateApiConfig(config);
+    this.config = config;
     
     // Create secure axios instance
     this.client = this.createSecureClient();
     
-    logger.info('Secure API client initialized');
+    const mode = isProductionMode(config) ? 'production' : 'mock';
+    logger.info(`Secure API client initialized in ${mode} mode`);
+  }
+
+  /**
+   * Check if this client is in production mode
+   */
+  isProductionMode(): boolean {
+    return isProductionMode(this.config);
   }
 
   /**
@@ -44,6 +53,12 @@ export class SecureApiClient {
     if (!apiKey || typeof apiKey !== 'string') {
       logger.error('Invalid API key configuration');
       throw new SecurityError('API key validation failed');
+    }
+    
+    // Allow development placeholder key
+    if (apiKey === 'dev-key-placeholder') {
+      logger.warn('Using development placeholder API key - requests will fail');
+      return apiKey;
     }
     
     // Basic format validation for CodeRide API keys
@@ -64,7 +79,7 @@ export class SecureApiClient {
     }
 
     // Ensure HTTPS in production
-    if (!baseUrl.startsWith('https://') && process.env.NODE_ENV === 'production') {
+    if (!baseUrl.startsWith('https://') && this.isProductionMode()) {
       throw new SecurityError('HTTPS is required in production');
     }
 
@@ -82,13 +97,16 @@ export class SecureApiClient {
    * Create secure axios instance with proper configuration
    */
   private createSecureClient(): AxiosInstance {
+    const validatedBaseUrl = this.validateBaseUrl(this.config.CODERIDE_API_URL);
+    const validatedApiKey = this.validateApiKey(this.config.CODERIDE_API_KEY);
+    
     const client = axios.create({
-      baseURL: this.baseUrl,
+      baseURL: validatedBaseUrl,
       timeout: this.requestTimeout,
       headers: {
         'Content-Type': 'application/json',
-        'api_key': this.apiKey,
-        'User-Agent': 'CodeRide-MCP/0.4.1',
+        'api_key': validatedApiKey,
+        'User-Agent': 'CodeRide-MCP/0.7.0',
         // Security headers
         'X-Requested-With': 'XMLHttpRequest',
       },
@@ -376,8 +394,14 @@ export class SecureApiClient {
   }
 }
 
-// Export singleton instance
-export const secureApiClient = new SecureApiClient();
+/**
+ * Factory function to create SecureApiClient instances
+ * Clean dependency injection pattern for better architecture
+ */
+export function createSecureApiClient(config: ApiConfig): SecureApiClient {
+  return new SecureApiClient(config);
+}
+
 
 // API Response Type Definitions
 export interface TaskApiResponse {

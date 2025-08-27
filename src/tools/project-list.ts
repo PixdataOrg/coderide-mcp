@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
-import { secureApiClient, ProjectListApiResponse } from '../utils/secure-api-client.js';
+import { SecureApiClient, ProjectListApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -33,6 +33,13 @@ export class ProjectListTool extends BaseTool<typeof ProjectListSchema> {
   };
 
   /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
+
+  /**
    * Returns the full tool definition conforming to MCP.
    */
   getMCPToolDefinition(): MCPToolDefinition {
@@ -56,10 +63,15 @@ export class ProjectListTool extends BaseTool<typeof ProjectListSchema> {
     logger.info('Executing project-list tool', input);
 
     try {
+      // Use the injected API client to get project list
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       const url = `/project/list`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<ProjectListApiResponse[]>(url) as unknown as ProjectListApiResponse[];
+      const responseData = await this.apiClient.get<ProjectListApiResponse[]>(url) as unknown as ProjectListApiResponse[];
       
       if (!responseData || !Array.isArray(responseData)) {
         logger.warn(`No projects found or invalid response format from ${url}`);

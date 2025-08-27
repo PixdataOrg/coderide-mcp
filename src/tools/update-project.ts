@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
-import { secureApiClient, UpdateProjectApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { SecureApiClient, UpdateProjectApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 // Removed local UpdateProjectResponse as UpdateProjectApiResponse from api-client.ts will be used.
@@ -81,6 +81,13 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
     idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
     openWorldHint: true, // Interacts with an external API
   };
+
+  /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
   
   /**
    * Returns the full tool definition conforming to MCP.
@@ -121,6 +128,11 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
     logger.info('Executing update-project tool', input);
 
     try {
+      // Use the injected API client to update project
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       // Extract project slug
       const { slug, ...updateData } = input;
       
@@ -128,7 +140,7 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
       const url = `/project/slug/${slug.toUpperCase()}`;
       logger.debug(`Making PUT request to: ${url}`);
       
-      const responseData = await secureApiClient.put<UpdateProjectApiResponse>(url, updateData) as unknown as UpdateProjectApiResponse;
+      const responseData = await this.apiClient.put<UpdateProjectApiResponse>(url, updateData) as unknown as UpdateProjectApiResponse;
 
       if (!responseData.success) {
         const apiErrorMessage = responseData.message || 'API reported update failure without a specific message.';

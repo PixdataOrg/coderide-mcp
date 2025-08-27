@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
-import { secureApiClient, TaskApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { SecureApiClient, TaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 // Removed local GetTasksResponse and TaskData as TaskApiResponse from api-client.ts will be used.
@@ -39,6 +39,13 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   };
 
   /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
+
+  /**
    * Returns the full tool definition conforming to MCP.
    */
   getMCPToolDefinition(): MCPToolDefinition {
@@ -68,23 +75,20 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
     logger.info('Executing get-task tool', input);
 
     try {
-      // Use the API client to get task by number
+      // Use the injected API client to get task by number
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       const url = `/task/number/${input.number.toUpperCase()}`;
-      // Note: The tool's input schema allows for limit, offset, status, agent,
-      // but the URL constructed here only uses the task number.
-      // If the API /task/number/:taskNumber supports these as query params, they should be added.
-      // Example: const url = `/task/number/${input.number.toUpperCase()}?limit=${input.limit}&offset=${input.offset}`;
-      // For now, assuming the endpoint only takes :taskNumber and returns a single task.
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
-      // const responseData: TaskApiResponse = axiosResponse.data; // This was the previous incorrect line
+      const responseData = await this.apiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
 
       // If responseData is null, undefined, or an empty object,
       // optional chaining and fallbacks will produce an "empty task" structure.
       // This ensures that if the API call itself doesn't throw (e.g. 404, 500),
       // but returns no meaningful data, we provide a default empty structure.
-      // The logger will still indicate if the response was truly empty if needed at a lower level.
       
       // Return only the specific properties requested, ensuring compact JSON
       return {

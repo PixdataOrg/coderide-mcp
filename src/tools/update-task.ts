@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
-import { secureApiClient, UpdateTaskApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { SecureApiClient, UpdateTaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 // Removed local UpdateTaskResponse as UpdateTaskApiResponse from api-client.ts will be used.
@@ -70,6 +70,13 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
     idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
     openWorldHint: true, // Interacts with an external API
   };
+
+  /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
   
   /**
    * Returns the full tool definition conforming to MCP.
@@ -110,6 +117,11 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
     logger.info('Executing update-task tool', input);
 
     try {
+      // Use the injected API client to update task
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       // Extract task number
       const { number, ...updateData } = input;
       
@@ -120,7 +132,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
       const url = `/task/number/${taskNumber}`;
       logger.debug(`Making PUT request to: ${url}`);
       
-      const responseData = await secureApiClient.put<UpdateTaskApiResponse>(url, updateData) as unknown as UpdateTaskApiResponse;
+      const responseData = await this.apiClient.put<UpdateTaskApiResponse>(url, updateData) as unknown as UpdateTaskApiResponse;
       
       if (!responseData.success) {
         const apiErrorMessage = responseData.message || 'API reported update failure without a specific message.';

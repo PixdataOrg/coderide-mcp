@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
-import { secureApiClient, TaskApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { SecureApiClient, TaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -37,6 +37,13 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
   };
 
   /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
+
+  /**
    * Returns the full tool definition conforming to MCP.
    */
   getMCPToolDefinition(): MCPToolDefinition {
@@ -66,12 +73,17 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
     logger.info('Executing get-prompt tool', input);
 
     try {
+      // Use the injected API client to get task prompt
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       // Get the task prompt using the specific endpoint /task/number/:taskNumber/prompt
       const taskNumber = input.number.toUpperCase(); // Convert to uppercase for consistency
       const url = `/task/number/${taskNumber}/prompt`; 
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
+      const responseData = await this.apiClient.get<TaskApiResponse>(url) as unknown as TaskApiResponse;
       
       if (!responseData) { 
         logger.warn(`No response data received for task number ${taskNumber} from ${url}. This might indicate the task has no prompt or an API issue.`);

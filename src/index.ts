@@ -13,6 +13,8 @@ import { z } from 'zod';
 import { logger } from './utils/logger.js';
 import { tokenSecurityManager } from './utils/token-security.js';
 import { BaseTool } from './utils/base-tool.js';
+import { createApiConfig, ApiConfig, isProductionMode } from './utils/env.js';
+import { createSecureApiClient } from './utils/secure-api-client.js';
 
 // Import tools
 import { GetTaskTool } from './tools/get-task.js';
@@ -28,25 +30,19 @@ import { NextTaskTool } from './tools/next-task.js';
 
 // Configuration schema for Smithery
 export const configSchema = z.object({
-  CODERIDE_API_KEY: z.string().describe("CodeRide API key for authentication (format: CR_API_KEY_xxxxxxxxxxxxxxxxxxxx)")
+  CODERIDE_API_KEY: z.string().describe("CodeRide API key for authentication")
 });
 
 /**
- * Create and configure the MCP server
- * This function is used by Smithery for HTTP deployments
+ * Create mock server for development/testing
  */
-export default function createServer({ config }: { config?: z.infer<typeof configSchema> } = {}) {
-  // Set environment variables from config if provided (Smithery deployment)
-  if (config?.CODERIDE_API_KEY) {
-    process.env.CODERIDE_API_KEY = config.CODERIDE_API_KEY;
-    process.env.CODERIDE_API_URL = process.env.CODERIDE_API_URL || 'https://api.coderide.ai';
-  }
-
-  // Initialize MCP server
+function createMockServer() {
+  logger.info('Creating mock CodeRide MCP server for development');
+  
   const server = new Server(
     {
-      name: 'coderide',
-      version: '0.6.0',
+      name: 'coderide-mock',
+      version: '0.7.0',
     },
     {
       capabilities: {
@@ -55,18 +51,241 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     }
   );
 
-  // Initialize tools
+  // Mock tools that return sample data
+  const mockTools = [
+    {
+      name: 'start_project',
+      description: 'Get project details and first task (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          slug: { type: 'string', pattern: '^[A-Za-z]{3}$' }
+        },
+        required: ['slug']
+      },
+      handler: async (args: any) => ({
+        project: { slug: args.slug, name: `Mock Project ${args.slug}` },
+        task: { number: `${args.slug}-1`, title: 'Mock First Task', prompt: 'This is a mock task prompt for development.' }
+      })
+    },
+    {
+      name: 'get_prompt',
+      description: 'Get task prompt (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          number: { type: 'string', pattern: '^[A-Za-z]{3}-\\d+$' }
+        },
+        required: ['number']
+      },
+      handler: async (args: any) => ({
+        taskPrompt: `Mock prompt for task ${args.number}. This is development data.`
+      })
+    },
+    {
+      name: 'get_task',
+      description: 'Get task details (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          number: { type: 'string', pattern: '^[A-Za-z]{3}-\\d+$' }
+        },
+        required: ['number']
+      },
+      handler: async (args: any) => ({
+        number: args.number,
+        title: `Mock Task ${args.number}`,
+        description: 'This is mock task data for development',
+        status: 'to-do',
+        priority: 'medium'
+      })
+    },
+    {
+      name: 'get_project',
+      description: 'Get project details (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          slug: { type: 'string', pattern: '^[A-Za-z]{3}$' }
+        },
+        required: ['slug']
+      },
+      handler: async (args: any) => ({
+        slug: args.slug,
+        name: `Mock Project ${args.slug}`,
+        description: 'This is mock project data for development',
+        projectKnowledge: { components: ['mock-component'], technologies: ['mock-tech'] },
+        projectDiagram: 'graph TD\n  A[Mock Component] --> B[Mock Output]'
+      })
+    },
+    {
+      name: 'project_list',
+      description: 'List all projects (Mock)',
+      inputSchema: { type: 'object', properties: {}, required: [] },
+      handler: async () => ({
+        projects: [
+          { id: '1', slug: 'ABC', name: 'Mock Project ABC', description: 'Development project' },
+          { id: '2', slug: 'XYZ', name: 'Mock Project XYZ', description: 'Another development project' }
+        ],
+        totalCount: 2
+      })
+    },
+    {
+      name: 'task_list',
+      description: 'List tasks in project (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          slug: { type: 'string', pattern: '^[A-Za-z]{3}$' }
+        },
+        required: ['slug']
+      },
+      handler: async (args: any) => ({
+        project: { slug: args.slug, name: `Mock Project ${args.slug}` },
+        taskSummary: { totalTasks: 2 },
+        tasksByStatus: [{
+          status: 'to-do',
+          tasks: [
+            { number: `${args.slug}-1`, title: 'Mock Task 1', status: 'to-do' },
+            { number: `${args.slug}-2`, title: 'Mock Task 2', status: 'to-do' }
+          ]
+        }]
+      })
+    },
+    {
+      name: 'next_task',
+      description: 'Get next task (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          number: { type: 'string', pattern: '^[A-Za-z]{3}-\\d+$' }
+        },
+        required: ['number']
+      },
+      handler: async (args: any) => {
+        const [slug, num] = args.number.split('-');
+        const nextNum = parseInt(num) + 1;
+        return {
+          currentTask: { number: args.number },
+          nextTask: { number: `${slug}-${nextNum}`, title: `Mock Next Task ${nextNum}`, status: 'to-do' }
+        };
+      }
+    },
+    {
+      name: 'update_task',
+      description: 'Update task (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          number: { type: 'string', pattern: '^[A-Za-z]{3}-\\d+$' },
+          description: { type: 'string' },
+          status: { type: 'string', enum: ['to-do', 'in-progress', 'completed'] }
+        },
+        required: ['number']
+      },
+      handler: async (args: any) => ({
+        number: args.number,
+        title: `Mock Task ${args.number}`,
+        description: args.description || 'Updated mock description',
+        status: args.status || 'in-progress',
+        updateConfirmation: `Mock update successful for ${args.number}`
+      })
+    },
+    {
+      name: 'update_project',
+      description: 'Update project (Mock)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          slug: { type: 'string', pattern: '^[A-Za-z]{3}$' },
+          project_knowledge: { type: 'object' },
+          project_diagram: { type: 'string' }
+        },
+        required: ['slug']
+      },
+      handler: async (args: any) => ({
+        slug: args.slug,
+        name: `Mock Project ${args.slug}`,
+        project_knowledge: args.project_knowledge || { updated: true },
+        project_diagram: args.project_diagram || 'Updated mock diagram',
+        updateConfirmation: `Mock update successful for project ${args.slug}`
+      })
+    }
+  ];
+
+  // Register list-tools handler
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: mockTools.map(tool => ({
+      name: tool.name,
+      description: tool.description,
+      inputSchema: tool.inputSchema
+    }))
+  }));
+
+  // Register call-tool handler
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const toolName = request.params.name;
+    const mockTool = mockTools.find(t => t.name === toolName);
+
+    if (!mockTool) {
+      throw new McpError(ErrorCode.MethodNotFound, `Mock tool '${toolName}' not found`);
+    }
+
+    try {
+      const result = await mockTool.handler(request.params.arguments || {});
+      return {
+        content: [{ type: 'text', text: JSON.stringify(result) }]
+      };
+    } catch (error) {
+      logger.error(`Error in mock tool ${toolName}`, error as Error);
+      return {
+        content: [{ type: 'text', text: JSON.stringify({ 
+          success: false, 
+          error: `Mock error: ${(error as Error).message}` 
+        }) }],
+        isError: true
+      };
+    }
+  });
+
+  return server;
+}
+
+/**
+ * Create production server with real API integration
+ */
+function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
+  logger.info('Creating production CodeRide MCP server');
+  
+  // Create clean API configuration
+  const apiConfig = createApiConfig(smitheryConfig);
+  
+  // Create secure API client with dependency injection
+  const secureApiClient = createSecureApiClient(apiConfig);
+
+  const server = new Server(
+    {
+      name: 'coderide',
+      version: '0.7.0',
+    },
+    {
+      capabilities: {
+        tools: {},
+      },
+    }
+  );
+
+  // Initialize real tools with dependency injection
   const tools: any[] = [
-    new StartProjectTool(),
-    new GetPromptTool(),
-    new GetTaskTool(),
-    new GetProjectTool(),
-    new UpdateTaskTool(),
-    new UpdateProjectTool(),
-    // New MCP tools
-    new ProjectListTool(),
-    new TaskListTool(),
-    new NextTaskTool(),
+    new StartProjectTool(secureApiClient),
+    new GetPromptTool(secureApiClient),
+    new GetTaskTool(secureApiClient),
+    new GetProjectTool(secureApiClient),
+    new UpdateTaskTool(secureApiClient),
+    new UpdateProjectTool(secureApiClient),
+    new ProjectListTool(secureApiClient),
+    new TaskListTool(secureApiClient),
+    new NextTaskTool(secureApiClient),
   ];
 
   // Register each tool with the server
@@ -131,12 +350,29 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
     }
   });
 
+  return server;
+}
+
+/**
+ * Create and configure the MCP server
+ * This function is used by Smithery for HTTP deployments
+ */
+export default function createServer({ config }: { config?: z.infer<typeof configSchema> } = {}) {
+  // Determine if we have a valid API key
+  const hasValidApiKey = config?.CODERIDE_API_KEY && 
+                        config.CODERIDE_API_KEY !== 'dev-key-placeholder' &&
+                        config.CODERIDE_API_KEY.startsWith('CR_API_KEY_');
+
+  // Create appropriate server based on configuration
+  const server = hasValidApiKey ? createProductionServer(config!) : createMockServer();
+
   // Set up error handler
   server.onerror = (error) => {
     logger.error('MCP Server error', error);
   };
 
-  logger.info(`Registered ${tools.length} tools`);
+  const serverType = hasValidApiKey ? 'production' : 'mock';
+  logger.info(`Created ${serverType} CodeRide MCP server`);
   
   return server;
 }
@@ -168,11 +404,11 @@ class CodeRideServer {
    */
   public async start(): Promise<void> {
     try {
-      // Import env here to avoid issues in Smithery deployment
-      const { env } = await import('./utils/env.js');
-      
       logger.info('Starting CodeRide MCP server');
-      logger.info(`Using CodeRide API URL: ${env.CODERIDE_API_URL}`);
+      
+      // Create default API config for STDIO mode
+      const apiConfig = createApiConfig();
+      logger.info(`Using CodeRide API URL: ${apiConfig.CODERIDE_API_URL}`);
 
       // Create stdio transport
       const transport = new StdioServerTransport();

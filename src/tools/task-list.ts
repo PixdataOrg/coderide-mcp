@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
-import { secureApiClient, TaskListApiResponse } from '../utils/secure-api-client.js';
+import { SecureApiClient, TaskListApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 /**
@@ -38,6 +38,13 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
   };
 
   /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
+
+  /**
    * Returns the full tool definition conforming to MCP.
    */
   getMCPToolDefinition(): MCPToolDefinition {
@@ -67,10 +74,15 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
     logger.info('Executing task-list tool', input);
 
     try {
+      // Use the injected API client to get task list
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       const url = `/task/project/slug/${input.slug.toUpperCase()}`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<TaskListApiResponse>(url) as unknown as TaskListApiResponse;
+      const responseData = await this.apiClient.get<TaskListApiResponse>(url) as unknown as TaskListApiResponse;
       
       if (!responseData) {
         logger.warn(`No project found or invalid response format from ${url}`);
