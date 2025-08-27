@@ -2,7 +2,7 @@
  * Comprehensive input validation and sanitization utilities
  * Implements MCP security best practices for input validation
  */
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 export class ValidationError extends Error {
   constructor(message: string) {

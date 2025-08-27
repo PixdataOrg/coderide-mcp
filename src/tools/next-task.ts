@@ -4,9 +4,9 @@
  * Retrieves the next task in sequence from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, NextTaskApiResponse } from '../utils/secure-api-client';
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { SecureApiClient, NextTaskApiResponse } from '../utils/secure-api-client.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Schema for the next-task tool input
@@ -35,6 +35,13 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+
+  /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
 
   /**
    * Returns the full tool definition conforming to MCP.
@@ -66,10 +73,15 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
     logger.info('Executing next-task tool', input);
 
     try {
+      // Use the injected API client to get next task
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       const url = `/task/number/${input.number.toUpperCase()}/next`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<NextTaskApiResponse>(url) as unknown as NextTaskApiResponse;
+      const responseData = await this.apiClient.get<NextTaskApiResponse>(url) as unknown as NextTaskApiResponse;
       
       if (!responseData) {
         logger.warn(`No next task found for ${input.number} from ${url}`);

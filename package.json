@@ -1,8 +1,10 @@
 {
   "name": "@coderide/mcp",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Model Context Protocol server for CodeRide, task management redesigned for AI",
+  "type": "module",
   "main": "dist/index.js",
+  "module": "src/index.ts",
   "bin": {
     "coderide-mcp": "dist/index.js"
   },
@@ -15,7 +17,9 @@
     "build": "tsc",
     "postbuild": "chmod +x dist/index.js",
     "start": "npm run build && node dist/index.js",
-    "dev": "ts-node src/index.ts"
+    "dev": "ts-node src/index.ts",
+    "smithery:build": "npx @smithery/cli build",
+    "smithery:dev": "npx @smithery/cli dev"
   },
   "keywords": [
     "mcp",
@@ -34,6 +38,7 @@
   "devDependencies": {
     "@types/node": "^20.17.47",
     "ts-node": "^10.9.1",
+    "tsx": "^4.20.5",
     "typescript": "^5.2.2"
   }
 }

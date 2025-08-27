@@ -4,9 +4,9 @@
  * Retrieves task prompt from the first task of a project
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, StartProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { SecureApiClient, StartProjectApiResponse } from '../utils/secure-api-client.js';
+import { logger } from '../utils/logger.js';
 
 // Removed unused local interfaces TaskData, GetTasksResponse, ProjectData, GetProjectResponse
 
@@ -41,6 +41,13 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
   };
 
   /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
+
+  /**
    * Returns the full tool definition conforming to MCP.
    */
   getMCPToolDefinition(): MCPToolDefinition {
@@ -70,11 +77,16 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
     logger.info('Executing start-project tool', input);
 
     try {
+      // Use the injected API client to get first task
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       // Get the first task of the project using the new endpoint
       const url = `/project/slug/${input.slug.toUpperCase()}/first-task`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<StartProjectApiResponse>(url) as unknown as StartProjectApiResponse;
+      const responseData = await this.apiClient.get<StartProjectApiResponse>(url) as unknown as StartProjectApiResponse;
       // const responseData: StartProjectApiResponse = axiosResponse.data; // This was the previous incorrect line
       
       if (!responseData || responseData.error) { 

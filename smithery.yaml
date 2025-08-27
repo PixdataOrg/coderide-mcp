@@ -1,24 +1,3 @@
 # Smithery configuration file: https://smithery.ai/docs/build/project-config
 
-startCommand:
-  type: stdio
-  commandFunction:
-    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
-    |-
-    (config) => ({
-      command: 'node',
-      args: ['dist/index.js'],
-      env: {
-        CODERIDE_API_KEY: config.CODERIDE_API_KEY
-      }
-    })
-  configSchema:
-    # JSON Schema defining the configuration options for the MCP.
-    type: object
-    required:
-      - CODERIDE_API_KEY
-    properties:
-      CODERIDE_API_KEY:
-        type: string
-        description: CodeRide API key for authentication
-        example: CR_API_KEY_xxxxxxxxxxxxxxxxxxxx # Placeholder example
+runtime: "typescript"

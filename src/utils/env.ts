@@ -1,46 +1,84 @@
 /**
- * Environment variable handling
+ * Clean configuration handling for Smithery MCP deployment
+ * Security-focused approach with no hardcoded secrets or complex patterns
  */
-import * as dotenv from 'dotenv';
-import { logger } from './logger';
-
-// Load environment variables from .env file
-dotenv.config();
+import { logger } from './logger.js';
 
 /**
- * Required environment variables for the application
+ * API configuration interface for type safety
  */
-export interface EnvironmentVariables {
-  CODERIDE_API_URL: string;
-  CODERIDE_API_KEY: string;
-  LOG_LEVEL?: string;
+export interface ApiConfig {
+  readonly CODERIDE_API_KEY: string;
+  readonly CODERIDE_API_URL: string;
+  readonly LOG_LEVEL: string;
 }
 
 /**
- * Get environment variables with validation
+ * Smithery configuration input (from Zod schema)
  */
-export function getEnv(): EnvironmentVariables {
-  const env: Partial<EnvironmentVariables> = {
+export interface SmitheryConfig {
+  CODERIDE_API_KEY?: string;
+}
+
+/**
+ * Create API configuration from Smithery config with secure defaults
+ * No hardcoded secrets - all sensitive data comes from Smithery's secure config system
+ */
+export function createApiConfig(smitheryConfig?: SmitheryConfig): ApiConfig {
+  const config: ApiConfig = {
+    CODERIDE_API_KEY: smitheryConfig?.CODERIDE_API_KEY || '',
     CODERIDE_API_URL: 'https://api.coderide.ai',
-    CODERIDE_API_KEY: process.env.CODERIDE_API_KEY,
-    LOG_LEVEL: process.env.LOG_LEVEL,
+    LOG_LEVEL: 'info'
   };
 
-  // Validate required environment variables
-  const missingVars: string[] = [];
-  
-  if (!env.CODERIDE_API_KEY) {
-    missingVars.push('CODERIDE_API_KEY');
+  // Log configuration status without exposing sensitive data
+  if (config.CODERIDE_API_KEY) {
+    logger.debug('API configuration loaded with provided credentials');
+  } else {
+    logger.debug('API configuration loaded without credentials (mock mode)');
   }
 
-  if (missingVars.length > 0) {
-    const errorMessage = `Missing required environment variables: ${missingVars.join(', ')}`;
-    logger.error(errorMessage);
-    throw new Error(errorMessage);
-  }
-
-  return env as EnvironmentVariables;
+  return config;
 }
 
-// Export environment variables
-export const env = getEnv();
+/**
+ * Validate API configuration for security compliance
+ */
+export function validateApiConfig(config: ApiConfig): void {
+  // Validate API URL security
+  if (!config.CODERIDE_API_URL.startsWith('https://')) {
+    throw new Error('API URL must use HTTPS for security');
+  }
+
+  // Validate URL format
+  try {
+    new URL(config.CODERIDE_API_URL);
+  } catch {
+    throw new Error('Invalid API URL format');
+  }
+
+  // Log validation success without exposing sensitive data
+  logger.debug('API configuration validation passed');
+}
+
+/**
+ * Determine if configuration indicates production mode
+ * Production mode requires a valid CodeRide API key format
+ */
+export function isProductionMode(config: ApiConfig): boolean {
+  return !!(
+    config.CODERIDE_API_KEY && 
+    config.CODERIDE_API_KEY.length > 10 &&
+    config.CODERIDE_API_KEY.startsWith('CR_API_KEY_')
+  );
+}
+
+/**
+ * Legacy support for STDIO deployments
+ * Only used when not running in Smithery environment
+ */
+export function createLegacyConfig(): ApiConfig {
+  return createApiConfig({
+    CODERIDE_API_KEY: process.env.CODERIDE_API_KEY
+  });
+}

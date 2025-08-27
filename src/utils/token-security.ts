@@ -4,7 +4,7 @@
  * Comprehensive token detection and redaction system that prevents sensitive tokens
  * from being passed through the MCP server or logged, following MCP security best practices.
  */
-import { logger } from './logger';
+import { logger } from './logger.js';
 import { randomBytes } from 'crypto';
 
 export class SecurityError extends Error {

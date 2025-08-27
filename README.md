@@ -43,7 +43,7 @@ The CodeRide MCP server provides your AI with the following capabilities:
 
 ## ⚙️ Getting Started
 
-### Installing via Smithery
+### Installing via Smithery (Recommended)
 
 To install Coderide MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@PixdataOrg/coderide):
 
@@ -51,26 +51,44 @@ To install Coderide MCP Server for Claude Desktop automatically via [Smithery](h
 npx -y @smithery/cli install @PixdataOrg/coderide --client claude
 ```
 
-It's easy to get CodeRide MCP running and integrated into your AI agent's environment.
+### Smithery Deployment Modes
 
-**Prerequisites:**
+CodeRide MCP supports **dual-mode operation** for both development and production use:
 
-1.  **Node.js and npm:** Ensure you have Node.js (which includes npm) installed. `npx` comes with npm.
-2.  **CodeRide Account & API Key:** This MCP server is designed exclusively for registered CodeRide users. You'll need an active CodeRide account and an API key, which you can obtain from your workspace settings on [app.coderide.ai](https://app.coderide.ai).
+#### 🔧 **Development/Testing Mode (Mock)**
+Perfect for exploring features, testing integrations, or contributing to the project without needing a real CodeRide account.
 
-**MCP Configuration:**
+**How to activate:** In the Smithery playground or configuration, either:
+- Leave the `CODERIDE_API_KEY` field empty
+- Provide any placeholder value (e.g., `mock-key`, `test`, etc.)
 
-Add the following configuration to your MCP client (e.g., Claude Desktop's `claude_desktop_config.json`, Cursor, Cline, Windsurf, VS Code settings, etc.):
+**What you get:**
+- All 9 tools available with realistic mock data
+- Sample projects (ABC, XYZ) and tasks (ABC-1, ABC-2, etc.)
+- Full MCP functionality for testing and development
+- No real API calls - completely safe for experimentation
+
+#### 🚀 **Production Mode (Real API)**
+For actual CodeRide users who want to integrate with their real projects and tasks.
+
+**How to activate:** Provide a valid CodeRide API key that starts with `CR_API_KEY_`
+
+**What you get:**
+- Full integration with your CodeRide workspace
+- Real project and task data
+- Ability to update tasks and projects
+- Complete workflow automation
+
+### Traditional MCP Configuration
+
+For non-Smithery deployments, add this configuration to your MCP client:
 
 ```json
 {
   "mcpServers": {
     "coderide": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@coderide/mcp"
-      ],
+      "args": ["-y", "@coderide/mcp"],
       "env": {
         "CODERIDE_API_KEY": "YOUR_CODERIDE_API_KEY_HERE"
       }
@@ -79,11 +97,12 @@ Add the following configuration to your MCP client (e.g., Claude Desktop's `clau
 }
 ```
 
-**Important:**
+**Prerequisites:**
 
-*   Replace `"YOUR_CODERIDE_API_KEY_HERE"` with your actual CodeRide API key.
+1.  **Node.js and npm:** Ensure you have Node.js (which includes npm) installed.
+2.  **CodeRide Account & API Key (Production only):** For production use, you'll need an active CodeRide account and API key from [app.coderide.ai](https://app.coderide.ai).
 
-Once configured, your MCP client will automatically start and connect to the CodeRide MCP server, making its tools available to your AI for interacting with your projects and tasks on CodeRide.
+Once configured, your MCP client will automatically connect to the CodeRide MCP server with the appropriate mode based on your configuration.
 
 ## 🤖 Who is this for?
 

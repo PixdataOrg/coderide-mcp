@@ -4,9 +4,9 @@
  * Retrieves project information from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, ProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { SecureApiClient, ProjectApiResponse } from '../utils/secure-api-client.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Schema for the get-project tool input
@@ -38,6 +38,13 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
   };
 
   /**
+   * Constructor with dependency injection
+   */
+  constructor(apiClient?: SecureApiClient) {
+    super(apiClient);
+  }
+
+  /**
    * Returns the full tool definition conforming to MCP.
    */
   getMCPToolDefinition(): MCPToolDefinition {
@@ -67,10 +74,15 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     logger.info('Executing get-project tool', input);
 
     try {
+      // Use the injected API client to get project by slug
+      if (!this.apiClient) {
+        throw new Error('API client not available - tool not properly initialized');
+      }
+
       const url = `/project/slug/${input.slug.toUpperCase()}`;
       logger.debug(`Making GET request to: ${url}`);
       
-      const responseData = await secureApiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
+      const responseData = await this.apiClient.get<ProjectApiResponse>(url) as unknown as ProjectApiResponse;
       
       // Return project data according to the new schema
       return {
