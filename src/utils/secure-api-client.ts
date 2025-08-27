@@ -106,7 +106,7 @@ export class SecureApiClient {
       headers: {
         'Content-Type': 'application/json',
         'api_key': validatedApiKey,
-        'User-Agent': 'CodeRide-MCP/0.7.0',
+        'User-Agent': 'CodeRide-MCP/0.7.1',
         // Security headers
         'X-Requested-With': 'XMLHttpRequest',
       },

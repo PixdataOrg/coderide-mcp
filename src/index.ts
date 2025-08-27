@@ -42,7 +42,7 @@ function createMockServer() {
   const server = new Server(
     {
       name: 'coderide-mock',
-      version: '0.7.0',
+      version: '0.7.1',
     },
     {
       capabilities: {
@@ -51,11 +51,11 @@ function createMockServer() {
     }
   );
 
-  // Mock tools that return sample data
+  // Mock tools with professional descriptions matching production
   const mockTools = [
     {
       name: 'start_project',
-      description: 'Get project details and first task (Mock)',
+      description: "Retrieves the project details and the prompt for the very first task of a specified project using the project's unique slug (e.g., 'CRD'). This is useful for initiating work on a new project or understanding its starting point.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -64,13 +64,13 @@ function createMockServer() {
         required: ['slug']
       },
       handler: async (args: any) => ({
-        project: { slug: args.slug, name: `Mock Project ${args.slug}` },
-        task: { number: `${args.slug}-1`, title: 'Mock First Task', prompt: 'This is a mock task prompt for development.' }
+        project: { slug: args.slug, name: `CodeRide Project ${args.slug}` },
+        task: { number: `${args.slug}-1`, title: 'Initialize Project Architecture', prompt: 'Set up the foundational architecture and development environment for this CodeRide project. Review project requirements and establish coding standards.' }
       })
     },
     {
       name: 'get_prompt',
-      description: 'Get task prompt (Mock)',
+      description: "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CRD-1'). This is typically used to understand the detailed requirements or context for an AI agent to work on the task.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -79,12 +79,12 @@ function createMockServer() {
         required: ['number']
       },
       handler: async (args: any) => ({
-        taskPrompt: `Mock prompt for task ${args.number}. This is development data.`
+        taskPrompt: `Implement the core functionality for task ${args.number}. Focus on clean, maintainable code following CodeRide best practices. Ensure proper error handling and comprehensive testing coverage.`
       })
     },
     {
       name: 'get_task',
-      description: 'Get task details (Mock)',
+      description: "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1').",
       inputSchema: {
         type: 'object',
         properties: {
@@ -94,15 +94,19 @@ function createMockServer() {
       },
       handler: async (args: any) => ({
         number: args.number,
-        title: `Mock Task ${args.number}`,
-        description: 'This is mock task data for development',
+        title: `Implement Feature Component`,
+        description: 'Develop and integrate a new feature component following CodeRide architecture patterns and design system guidelines.',
         status: 'to-do',
-        priority: 'medium'
+        priority: 'high',
+        agent: 'AI Development Assistant',
+        agent_prompt: 'Focus on clean code architecture and comprehensive testing',
+        context: 'Part of the core platform development initiative',
+        instructions: 'Follow CodeRide coding standards and ensure proper documentation'
       })
     },
     {
       name: 'get_project',
-      description: 'Get project details (Mock)',
+      description: "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CRD').",
       inputSchema: {
         type: 'object',
         properties: {
@@ -112,27 +116,33 @@ function createMockServer() {
       },
       handler: async (args: any) => ({
         slug: args.slug,
-        name: `Mock Project ${args.slug}`,
-        description: 'This is mock project data for development',
-        projectKnowledge: { components: ['mock-component'], technologies: ['mock-tech'] },
-        projectDiagram: 'graph TD\n  A[Mock Component] --> B[Mock Output]'
+        name: `CodeRide ${args.slug} Platform`,
+        description: 'AI-native task management and development workflow platform designed for modern software teams.',
+        projectKnowledge: { 
+          components: ['task-engine', 'ai-integration', 'workflow-automation'], 
+          technologies: ['TypeScript', 'React', 'Node.js', 'MCP'],
+          architecture: 'microservices',
+          patterns: ['dependency-injection', 'event-driven']
+        },
+        projectDiagram: 'graph TD\n  A[AI Agent] --> B[Task Engine]\n  B --> C[CodeRide API]\n  C --> D[Project Management]\n  D --> E[Workflow Automation]'
       })
     },
     {
       name: 'project_list',
-      description: 'List all projects (Mock)',
+      description: "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication.",
       inputSchema: { type: 'object', properties: {}, required: [] },
       handler: async () => ({
         projects: [
-          { id: '1', slug: 'ABC', name: 'Mock Project ABC', description: 'Development project' },
-          { id: '2', slug: 'XYZ', name: 'Mock Project XYZ', description: 'Another development project' }
+          { id: '1', slug: 'CRD', name: 'CodeRide Core Platform', description: 'Main CodeRide platform development' },
+          { id: '2', slug: 'MCP', name: 'MCP Integration Suite', description: 'Model Context Protocol integration tools' },
+          { id: '3', slug: 'API', name: 'CodeRide API Gateway', description: 'Unified API gateway and authentication system' }
         ],
-        totalCount: 2
+        totalCount: 3
       })
     },
     {
       name: 'task_list',
-      description: 'List tasks in project (Mock)',
+      description: "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -141,20 +151,34 @@ function createMockServer() {
         required: ['slug']
       },
       handler: async (args: any) => ({
-        project: { slug: args.slug, name: `Mock Project ${args.slug}` },
-        taskSummary: { totalTasks: 2 },
-        tasksByStatus: [{
-          status: 'to-do',
-          tasks: [
-            { number: `${args.slug}-1`, title: 'Mock Task 1', status: 'to-do' },
-            { number: `${args.slug}-2`, title: 'Mock Task 2', status: 'to-do' }
-          ]
-        }]
+        project: { slug: args.slug, name: `CodeRide ${args.slug} Platform` },
+        taskSummary: { totalTasks: 4 },
+        tasksByStatus: [
+          {
+            status: 'to-do',
+            tasks: [
+              { number: `${args.slug}-1`, title: 'Initialize Project Architecture', status: 'to-do' },
+              { number: `${args.slug}-2`, title: 'Implement Core API Endpoints', status: 'to-do' }
+            ]
+          },
+          {
+            status: 'in-progress',
+            tasks: [
+              { number: `${args.slug}-3`, title: 'Develop User Authentication', status: 'in-progress' }
+            ]
+          },
+          {
+            status: 'completed',
+            tasks: [
+              { number: `${args.slug}-4`, title: 'Setup Development Environment', status: 'completed' }
+            ]
+          }
+        ]
       })
     },
     {
       name: 'next_task',
-      description: 'Get next task (Mock)',
+      description: "Retrieves the next task in sequence based on the current task number (e.g., CDB-23 → CDB-24). This is useful for finding the next task that needs to be done in a project workflow.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -167,13 +191,18 @@ function createMockServer() {
         const nextNum = parseInt(num) + 1;
         return {
           currentTask: { number: args.number },
-          nextTask: { number: `${slug}-${nextNum}`, title: `Mock Next Task ${nextNum}`, status: 'to-do' }
+          nextTask: { 
+            number: `${slug}-${nextNum}`, 
+            title: `Implement Advanced Features`, 
+            status: 'to-do',
+            description: 'Build advanced functionality and optimization features for the CodeRide platform.'
+          }
         };
       }
     },
     {
       name: 'update_task',
-      description: 'Update task (Mock)',
+      description: "Updates an existing task's 'description' and/or 'status'. The task is identified by its unique 'number' (e.g., 'CRD-1'). At least one of 'description' or 'status' must be provided for an update.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -185,15 +214,15 @@ function createMockServer() {
       },
       handler: async (args: any) => ({
         number: args.number,
-        title: `Mock Task ${args.number}`,
-        description: args.description || 'Updated mock description',
+        title: `CodeRide Task ${args.number}`,
+        description: args.description || 'Updated task with enhanced functionality and improved implementation approach.',
         status: args.status || 'in-progress',
-        updateConfirmation: `Mock update successful for ${args.number}`
+        updateConfirmation: `Successfully updated task ${args.number} in CodeRide platform`
       })
     },
     {
       name: 'update_project',
-      description: 'Update project (Mock)',
+      description: "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). The project is identified by its unique 'slug'. At least one of 'project_knowledge' or 'project_diagram' must be provided for an update to occur.",
       inputSchema: {
         type: 'object',
         properties: {
@@ -205,10 +234,14 @@ function createMockServer() {
       },
       handler: async (args: any) => ({
         slug: args.slug,
-        name: `Mock Project ${args.slug}`,
-        project_knowledge: args.project_knowledge || { updated: true },
-        project_diagram: args.project_diagram || 'Updated mock diagram',
-        updateConfirmation: `Mock update successful for project ${args.slug}`
+        name: `CodeRide ${args.slug} Platform`,
+        project_knowledge: args.project_knowledge || { 
+          updated: true, 
+          components: ['enhanced-ai-engine', 'advanced-workflow'], 
+          technologies: ['TypeScript', 'React', 'Node.js', 'MCP', 'AI/ML'] 
+        },
+        project_diagram: args.project_diagram || 'graph TD\n  A[Enhanced AI Engine] --> B[Smart Task Management]\n  B --> C[CodeRide Platform]\n  C --> D[Advanced Analytics]',
+        updateConfirmation: `Successfully updated CodeRide project ${args.slug} with enhanced architecture`
       })
     }
   ];
@@ -266,7 +299,7 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
   const server = new Server(
     {
       name: 'coderide',
-      version: '0.7.0',
+      version: '0.7.1',
     },
     {
       capabilities: {
@@ -441,7 +474,25 @@ class CodeRideServer {
 }
 
 // Only start STDIO server if this file is run directly (not imported by Smithery)
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('src/index.ts')) {
+// Use Node.js compatible approach that works in both ES modules and CommonJS
+const isMainModule = () => {
+  try {
+    // ES modules approach
+    if (typeof import.meta !== 'undefined' && import.meta.url) {
+      return import.meta.url === `file://${process.argv[1]}`;
+    }
+    
+    // Fallback: check if this file is the main entry point
+    return process.argv[1]?.endsWith('src/index.ts') || 
+           process.argv[1]?.endsWith('dist/index.js') ||
+           process.argv[1]?.endsWith('index.js');
+  } catch {
+    // If all else fails, assume we're in STDIO mode if no HTTP context
+    return !process.env.SMITHERY_HTTP_MODE;
+  }
+};
+
+if (isMainModule()) {
   const server = new CodeRideServer();
   server.start().catch((error: Error) => {
     logger.error('Server start error', error);
