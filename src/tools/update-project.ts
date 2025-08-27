@@ -11,26 +11,70 @@ import { logger } from '../utils/logger.js';
 // Removed local UpdateProjectResponse as UpdateProjectApiResponse from api-client.ts will be used.
 
 /**
- * Secure schema for project knowledge data
- * Prevents JSON injection while maintaining flexibility
+ * Flexible schema for project knowledge data
+ * Supports both simple strings and structured objects for maximum usability
  */
 const ProjectKnowledgeSchema = z.object({
-  // Core project information
-  components: z.array(z.string().max(100, "Component name too long")).max(50, "Too many components").optional(),
-  dependencies: z.array(z.string().max(100, "Dependency name too long")).max(50, "Too many dependencies").optional(),
-  technologies: z.array(z.string().max(50, "Technology name too long")).max(20, "Too many technologies").optional(),
+  // Core project information - flexible to support both strings and objects
+  components: z.array(
+    z.union([
+      z.string().max(500, "Component description too long"),
+      z.object({
+        name: z.string().max(100, "Component name too long"),
+        type: z.string().max(50, "Component type too long").optional(),
+        status: z.string().max(50, "Component status too long").optional(),
+        description: z.string().max(500, "Component description too long").optional(),
+      }).passthrough() // Allow additional properties
+    ])
+  ).max(50, "Too many components").optional(),
+  
+  dependencies: z.array(
+    z.union([
+      z.string().max(500, "Dependency description too long"),
+      z.object({
+        name: z.string().max(100, "Dependency name too long"),
+        version: z.string().max(50, "Dependency version too long").optional(),
+        purpose: z.string().max(500, "Dependency purpose too long").optional(),
+      }).passthrough()
+    ])
+  ).max(50, "Too many dependencies").optional(),
+  
+  technologies: z.array(
+    z.union([
+      z.string().max(500, "Technology description too long"), // Increased from 50 to 500
+      z.object({
+        name: z.string().max(100, "Technology name too long"),
+        type: z.string().max(50, "Technology type too long").optional(),
+        purpose: z.string().max(500, "Technology purpose too long").optional(),
+        version: z.string().max(50, "Technology version too long").optional(),
+      }).passthrough()
+    ])
+  ).max(30, "Too many technologies").optional(), // Increased from 20 to 30
   
   // Architecture and design
-  architecture: z.string().max(2000, "Architecture description too long").optional(),
-  patterns: z.array(z.string().max(100, "Pattern name too long")).max(20, "Too many patterns").optional(),
+  architecture: z.string().max(3000, "Architecture description too long").optional(), // Increased from 2000
+  patterns: z.array(
+    z.union([
+      z.string().max(200, "Pattern description too long"), // Increased from 100
+      z.object({
+        name: z.string().max(100, "Pattern name too long"),
+        description: z.string().max(500, "Pattern description too long").optional(),
+      }).passthrough()
+    ])
+  ).max(30, "Too many patterns").optional(), // Increased from 20
   
   // Documentation and notes
-  notes: z.string().max(5000, "Notes too long").optional(),
-  links: z.array(z.string().url("Invalid URL format").max(500, "URL too long")).max(10, "Too many links").optional(),
+  notes: z.string().max(10000, "Notes too long").optional(), // Increased from 5000
+  links: z.array(z.string().url("Invalid URL format").max(500, "URL too long")).max(20, "Too many links").optional(), // Increased from 10
   
-  // Custom metadata (controlled)
-  metadata: z.record(z.string().max(500, "Metadata value too long")).optional(),
-}).strict();
+  // Custom metadata (controlled) - more flexible
+  metadata: z.record(
+    z.union([
+      z.string().max(1000, "Metadata value too long"), // Increased from 500
+      z.object({}).passthrough() // Allow objects in metadata
+    ])
+  ).optional(),
+}).passthrough(); // Allow additional properties for maximum flexibility
 
 /**
  * Schema for the update-project tool input

@@ -42,7 +42,7 @@ function createMockServer() {
   const server = new Server(
     {
       name: 'coderide-mock',
-      version: '0.7.2',
+      version: '0.7.3',
     },
     {
       capabilities: {
@@ -299,7 +299,7 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
   const server = new Server(
     {
       name: 'coderide',
-      version: '0.7.2',
+      version: '0.7.3',
     },
     {
       capabilities: {

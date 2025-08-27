@@ -43,29 +43,29 @@ export class InputValidator {
   static validateUserPermissions(input: any, context: string): void {
     // Check for suspicious patterns that might indicate privilege escalation or injection attacks
     const suspiciousPatterns = [
-      // System/admin patterns (more specific to avoid false positives)
-      /\/admin/i, /\/root/i, /\/system\//i, /sudo\s+/i, /superuser/i,
+      // System/admin patterns (very specific to avoid false positives)
+      /\/admin\//i, /\/root\//i, /\/system\//i, /sudo\s+[a-z]/i, /superuser\s/i,
       
-      // Path traversal patterns
-      /\.\.\//, /\/etc\//, /\/var\//, /\/usr\//, /\/bin\//, /\/sbin\//,
+      // Path traversal patterns (more specific)
+      /\.\.\/[a-z]/i, /\/etc\/[a-z]/i, /\/var\/[a-z]/i, /\/usr\/[a-z]/i, /\/bin\/[a-z]/i, /\/sbin\/[a-z]/i,
       
-      // Script injection patterns
-      /<script/i, /javascript:/i, /data:/i, /vbscript:/i,
+      // Script injection patterns (more specific)
+      /<script[\s>]/i, /javascript:\s*[a-z]/i, /vbscript:\s*[a-z]/i,
       
-      // SQL injection patterns
-      /union\s+select/i, /drop\s+table/i, /delete\s+from/i, /insert\s+into/i,
+      // SQL injection patterns (more specific)
+      /union\s+select\s/i, /drop\s+table\s/i, /delete\s+from\s/i, /insert\s+into\s/i,
       
-      // Command injection patterns
-      /\$\(/, /`/, /\|\|/, /&&/, /;\s*[a-zA-Z]/, /\|\s*[a-zA-Z]/,
+      // Command injection patterns (more specific to avoid false positives)
+      /\$\([a-z]/i, /`[a-z]/i, /\|\|\s*[a-z]/i, /&&\s*[a-z]/i, /;\s*(rm|del|cat|ls|dir|echo|curl|wget|nc|netcat)\s/i,
       
-      // Protocol handlers
-      /file:\/\//, /ftp:\/\//, /ldap:\/\//, /gopher:\/\//,
+      // Protocol handlers (more specific)
+      /file:\/\/[a-z]/i, /ftp:\/\/[a-z]/i, /ldap:\/\/[a-z]/i, /gopher:\/\/[a-z]/i,
       
-      // Encoding attempts
-      /%2e%2e/, /%2f/, /%5c/, /\\x/, /\\u/,
+      // Encoding attempts (more specific)
+      /%2e%2e%2f/i, /%2f[a-z]/i, /%5c[a-z]/i, /\\x[0-9a-f]{2}/i, /\\u[0-9a-f]{4}/i,
       
-      // Template injection
-      /\{\{/, /\}\}/, /\$\{/, /<%/, /%>/
+      // Template injection (more specific)
+      /\{\{[a-z]/i, /\}\}[a-z]/i, /\$\{[a-z]/i, /<%[a-z]/i, /%>[a-z]/i
     ];
     
     const inputStr = JSON.stringify(input);
