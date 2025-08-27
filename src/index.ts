@@ -385,7 +385,10 @@ class CodeRideServer {
   private server: Server;
 
   constructor() {
-    this.server = createServer();
+    // For STDIO mode, check if we have a real API key in environment
+    const envApiKey = process.env.CODERIDE_API_KEY;
+    const config = envApiKey ? { CODERIDE_API_KEY: envApiKey } : undefined;
+    this.server = createServer({ config });
 
     // Set up graceful shutdown for STDIO mode
     process.on('SIGINT', async () => {
