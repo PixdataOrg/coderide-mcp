@@ -43,8 +43,8 @@ export class InputValidator {
   static validateUserPermissions(input: any, context: string): void {
     // Check for suspicious patterns that might indicate privilege escalation or injection attacks
     const suspiciousPatterns = [
-      // System/admin patterns
-      /admin/i, /root/i, /system/i, /sudo/i, /superuser/i,
+      // System/admin patterns (more specific to avoid false positives)
+      /\/admin/i, /\/root/i, /\/system\//i, /sudo\s+/i, /superuser/i,
       
       // Path traversal patterns
       /\.\.\//, /\/etc\//, /\/var\//, /\/usr\//, /\/bin\//, /\/sbin\//,
@@ -56,7 +56,7 @@ export class InputValidator {
       /union\s+select/i, /drop\s+table/i, /delete\s+from/i, /insert\s+into/i,
       
       // Command injection patterns
-      /\$\(/, /`/, /\|\|/, /&&/, /;/, /\|/,
+      /\$\(/, /`/, /\|\|/, /&&/, /;\s*[a-zA-Z]/, /\|\s*[a-zA-Z]/,
       
       // Protocol handlers
       /file:\/\//, /ftp:\/\//, /ldap:\/\//, /gopher:\/\//,
@@ -276,28 +276,41 @@ export class InputValidator {
     }
     
     try {
-      // If it's already an object, stringify and parse to validate
-      const jsonString = typeof input === 'string' ? input : JSON.stringify(input);
+      let validatedObject: any;
+      let sizeToCheck: number;
+      
+      if (typeof input === 'string') {
+        // Handle string input - parse as JSON
+        validatedObject = JSON.parse(input);
+        sizeToCheck = input.length;
+      } else if (typeof input === 'object') {
+        // Handle object input - validate directly without re-parsing
+        validatedObject = input;
+        // Calculate size by stringifying for size check only
+        sizeToCheck = JSON.stringify(input).length;
+      } else {
+        throw new ValidationError('Input must be a JSON string or object');
+      }
       
       // Check size limit (100KB)
       const maxSize = 100 * 1024; // 100KB
-      if (jsonString.length > maxSize) {
+      if (sizeToCheck > maxSize) {
         throw new ValidationError(`JSON input too large. Maximum size: ${maxSize} bytes`);
       }
       
-      // Parse to ensure valid JSON
-      const parsed = JSON.parse(jsonString);
-      
       // Additional security checks
-      this.validateJsonSecurity(parsed);
+      this.validateJsonSecurity(validatedObject);
       
-      logger.debug(`Validated JSON input: ${jsonString.length} bytes`);
-      return parsed;
+      logger.debug(`Validated JSON input: ${sizeToCheck} bytes`);
+      return validatedObject;
     } catch (error) {
-      if (error instanceof ValidationError) {
+      if (error instanceof ValidationError || error instanceof SecurityError) {
         throw error;
       }
-      throw new ValidationError('Invalid JSON input');
+      // Provide more specific error information for debugging
+      const errorMsg = error instanceof Error ? error.message : 'Unknown parsing error';
+      logger.error(`JSON validation failed: ${errorMsg}`);
+      throw new ValidationError(`Invalid JSON input: ${errorMsg}`);
     }
   }
 
@@ -311,12 +324,25 @@ export class InputValidator {
       throw new SecurityError('JSON nesting too deep');
     }
     
-    // Prevent prototype pollution
+    // Prevent prototype pollution - only check for dangerous assignments
     if (obj && typeof obj === 'object') {
-      const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
-      for (const key of dangerousKeys) {
-        if (key in obj) {
-          throw new SecurityError(`Dangerous key detected: ${key}`);
+      // Check for dangerous prototype pollution patterns
+      // Only flag if these keys have suspicious values that could modify prototypes
+      if ('__proto__' in obj && obj.__proto__ !== null && typeof obj.__proto__ === 'object') {
+        // Check if __proto__ contains suspicious modifications
+        const proto = obj.__proto__;
+        const suspiciousProtoKeys = ['constructor', 'toString', 'valueOf', 'hasOwnProperty'];
+        for (const key of suspiciousProtoKeys) {
+          if (key in proto && typeof proto[key] !== 'function') {
+            throw new SecurityError(`Dangerous prototype pollution detected: ${key}`);
+          }
+        }
+      }
+      
+      // Check for constructor pollution
+      if ('constructor' in obj && obj.constructor && typeof obj.constructor === 'object') {
+        if ('prototype' in obj.constructor) {
+          throw new SecurityError('Dangerous constructor pollution detected');
         }
       }
       
