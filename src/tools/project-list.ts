@@ -4,9 +4,9 @@
  * Lists all projects in the user workspace from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, ProjectListApiResponse } from '../utils/secure-api-client';
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, ProjectListApiResponse } from '../utils/secure-api-client.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Schema for the project-list tool input

@@ -4,9 +4,9 @@
  * Retrieves task prompt from the CodeRide API for a specific task
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, TaskApiResponse } from '../utils/secure-api-client'; // Use secure API client
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, TaskApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { logger } from '../utils/logger.js';
 
 /**
  * Schema for the get-prompt tool input

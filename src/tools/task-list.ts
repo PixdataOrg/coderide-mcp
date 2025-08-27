@@ -4,9 +4,9 @@
  * Lists all tasks within a project by slug from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, TaskListApiResponse } from '../utils/secure-api-client';
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, TaskListApiResponse } from '../utils/secure-api-client.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Schema for the task-list tool input

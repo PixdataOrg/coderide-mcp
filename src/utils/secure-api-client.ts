@@ -3,9 +3,9 @@
  * Focuses on input validation, proper authentication, and secure request handling
  */
 import axios, { AxiosError, AxiosRequestConfig, AxiosInstance } from 'axios';
-import { logger } from './logger';
-import { env } from './env';
-import { InputValidator, ValidationError, SecurityError } from './input-validator';
+import { logger } from './logger.js';
+import { env } from './env.js';
+import { InputValidator, ValidationError, SecurityError } from './input-validator.js';
 
 // Rate limiting store (simple in-memory implementation)
 interface RateLimitEntry {

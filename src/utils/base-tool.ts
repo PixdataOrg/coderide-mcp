@@ -3,9 +3,9 @@
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { z } from 'zod';
-import { logger } from './logger';
-import { validateNoTokenPassthrough, redactSensitiveTokens } from './token-security';
-import { InputValidator, ValidationError, SecurityError } from './input-validator';
+import { logger } from './logger.js';
+import { validateNoTokenPassthrough, redactSensitiveTokens } from './token-security.js';
+import { InputValidator, ValidationError, SecurityError } from './input-validator.js';
 
 /**
  * Abstract base class for all MCP tools
@@ -102,7 +102,7 @@ export abstract class BaseTool<T extends z.ZodType> {
         logger.error(`Validation failed for tool ${this.name} [${requestId}]: ${error.message}`);
         throw validationError;
       } else if (error instanceof ValidationError || error instanceof SecurityError) {
-        logger.error(`Security validation failed for tool ${this.name} [${requestId}]: ${error.message}`);
+        logger.error(`Security validation failed for tool ${this.name} [${requestId}]: ${error instanceof Error ? error.message : String(error)}`);
         throw error;
       } else {
         logger.error(`Unexpected error in tool ${this.name} [${requestId}]: ${(error as Error).message}`);

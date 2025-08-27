@@ -4,9 +4,9 @@
  * Updates an existing task using the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, UpdateTaskApiResponse } from '../utils/secure-api-client'; // Use secure API client
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, UpdateTaskApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { logger } from '../utils/logger.js';
 
 // Removed local UpdateTaskResponse as UpdateTaskApiResponse from api-client.ts will be used.
 

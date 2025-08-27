@@ -4,9 +4,9 @@
  * Retrieves task prompt from the first task of a project
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, StartProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, StartProjectApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { logger } from '../utils/logger.js';
 
 // Removed unused local interfaces TaskData, GetTasksResponse, ProjectData, GetProjectResponse
 

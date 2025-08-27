@@ -4,9 +4,9 @@
  * Updates project knowledge and diagram using the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, UpdateProjectApiResponse } from '../utils/secure-api-client'; // Use secure API client
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, UpdateProjectApiResponse } from '../utils/secure-api-client.js'; // Use secure API client
+import { logger } from '../utils/logger.js';
 
 // Removed local UpdateProjectResponse as UpdateProjectApiResponse from api-client.ts will be used.
 

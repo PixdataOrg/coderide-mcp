@@ -4,9 +4,9 @@
  * Retrieves the next task in sequence from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool';
-import { secureApiClient, NextTaskApiResponse } from '../utils/secure-api-client';
-import { logger } from '../utils/logger';
+import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { secureApiClient, NextTaskApiResponse } from '../utils/secure-api-client.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * Schema for the next-task tool input

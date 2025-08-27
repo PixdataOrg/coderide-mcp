@@ -2,7 +2,7 @@
  * Environment variable handling
  */
 import * as dotenv from 'dotenv';
-import { logger } from './logger';
+import { logger } from './logger.js';
 
 // Load environment variables from .env file
 dotenv.config();
