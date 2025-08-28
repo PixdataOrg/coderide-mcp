@@ -24,8 +24,8 @@ import { UpdateProjectTool } from './tools/update-project.js';
 import { GetPromptTool } from './tools/get-prompt.js';
 import { StartProjectTool } from './tools/start-project.js';
 // New MCP tools
-import { ProjectListTool } from './tools/project-list.js';
-import { TaskListTool } from './tools/task-list.js';
+import { ListProjectsTool } from './tools/project-list.js';
+import { ListTasksTool } from './tools/task-list.js';
 import { NextTaskTool } from './tools/next-task.js';
 
 // Configuration schema for Smithery
@@ -128,7 +128,7 @@ function createMockServer() {
       })
     },
     {
-      name: 'project_list',
+      name: 'list_projects',
       description: "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication.",
       inputSchema: { type: 'object', properties: {}, required: [] },
       handler: async () => ({
@@ -141,7 +141,7 @@ function createMockServer() {
       })
     },
     {
-      name: 'task_list',
+      name: 'list_tasks',
       description: "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status.",
       inputSchema: {
         type: 'object',
@@ -316,8 +316,8 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
     new GetProjectTool(secureApiClient),
     new UpdateTaskTool(secureApiClient),
     new UpdateProjectTool(secureApiClient),
-    new ProjectListTool(secureApiClient),
-    new TaskListTool(secureApiClient),
+    new ListProjectsTool(secureApiClient),
+    new ListTasksTool(secureApiClient),
     new NextTaskTool(secureApiClient),
   ];
 
