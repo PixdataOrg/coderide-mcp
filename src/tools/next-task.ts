@@ -4,7 +4,7 @@
  * Retrieves the next task in sequence from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, NextTaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -41,6 +41,84 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
    */
   constructor(apiClient?: SecureApiClient) {
     super(apiClient);
+  }
+
+  /**
+   * Override to require project context for task sequence management
+   */
+  requiresProjectContext(): boolean {
+    return true;
+  }
+
+  /**
+   * Generate agent-specific instructions for next task workflow
+   */
+  generateAgentInstructions(input: any, result: any): AgentInstructions {
+    const hasNextTask = result && !result.isError && result.number;
+    
+    const baseInstructions: AgentInstructions = {
+      immediateActions: [
+        'Next task in sequence identified',
+        'Prepare for seamless task transition'
+      ],
+      nextRecommendedTools: ['get_task', 'get_prompt'],
+      workflowPhase: 'discovery',
+      prerequisiteValidation: {
+        required: ['get_project'],
+        onMissing: 'Project context required for task sequence management'
+      },
+      criticalReminders: [
+        'Maintain workflow continuity between tasks',
+        'Ensure project context remains current'
+      ]
+    };
+
+    if (hasNextTask) {
+      baseInstructions.immediateActions = [
+        `Next task found: ${result.number}`,
+        'Begin analysis of next task requirements',
+        'Maintain project context for seamless transition'
+      ];
+      baseInstructions.nextRecommendedTools = ['get_task', 'get_prompt', 'update_task'];
+      baseInstructions.workflowCorrection = {
+        correctSequence: ['next_task', 'get_task', 'get_prompt', 'update_task'],
+        redirectMessage: 'Continue with standard task workflow: get_task → get_prompt → update_task to "in-progress"'
+      };
+      baseInstructions.criticalReminders = [
+        'Start next task immediately to maintain momentum',
+        'Follow standard workflow: get_task → get_prompt → update_task',
+        'Update task status to "in-progress" when ready to begin'
+      ];
+    } else {
+      baseInstructions.immediateActions = [
+        'No next task found in sequence',
+        'Review project task list for available work',
+        'Consider project completion or new task creation'
+      ];
+      baseInstructions.nextRecommendedTools = ['list_tasks'];
+      baseInstructions.workflowPhase = 'completion';
+      baseInstructions.criticalReminders = [
+        'End of task sequence reached',
+        'Review overall project status',
+        'Consider if project goals are complete'
+      ];
+    }
+
+    // Add sequence management automation hints
+    baseInstructions.automationHints = {
+      sequenceManagement: [
+        'Always call next_task after completing a task',
+        'Maintain task dependencies and logical order',
+        'Update project knowledge before moving to next task'
+      ],
+      workflowContinuity: [
+        'Preserve project context across task transitions',
+        'Ensure consistent status management',
+        'Document progress between tasks'
+      ]
+    };
+
+    return baseInstructions;
   }
 
   /**

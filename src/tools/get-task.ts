@@ -4,7 +4,7 @@
  * Retrieves tasks from the CodeRide API with optional filtering
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, TaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -43,6 +43,71 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
    */
   constructor(apiClient?: SecureApiClient) {
     super(apiClient);
+  }
+
+  /**
+   * Override to require project context before task analysis
+   */
+  requiresProjectContext(): boolean {
+    return true;
+  }
+
+  /**
+   * Generate agent-specific instructions for task analysis workflow
+   */
+  generateAgentInstructions(): AgentInstructions {
+    return {
+      immediateActions: [
+        'Analyze task details and requirements',
+        'Verify task status and priority',
+        'Prepare for implementation planning'
+      ],
+      nextRecommendedTools: ['get_prompt', 'update_task'],
+      workflowPhase: 'analysis',
+      prerequisiteValidation: {
+        required: ['get_project'],
+        onMissing: 'Project context required - call get_project first to establish context before task analysis'
+      },
+      statusUpdateRequired: true,
+      contextRequired: ['project_knowledge', 'project_diagram'],
+      statusAwareGuidance: {
+        'to-do': {
+          actions: [
+            'Read task details carefully',
+            'Call get_prompt for detailed instructions',
+            'Update status to "in-progress" via update_task',
+            'Begin implementation'
+          ],
+          nextTools: ['get_prompt', 'update_task']
+        },
+        'in-progress': {
+          actions: [
+            'Review current task state',
+            'Check if additional context needed via get_prompt',
+            'Continue with implementation',
+            'Update progress as needed'
+          ],
+          nextTools: ['get_prompt', 'update_task']
+        },
+        'completed': {
+          actions: [
+            'Review completed work',
+            'Verify task requirements were met',
+            'Consider calling next_task for workflow continuation'
+          ],
+          nextTools: ['next_task', 'update_project']
+        }
+      },
+      workflowCorrection: {
+        correctSequence: ['get_project', 'get_task', 'get_prompt', 'update_task'],
+        redirectMessage: 'Task analysis requires project context. Call get_project first, then get_task, then get_prompt for detailed instructions.'
+      },
+      criticalReminders: [
+        'Always call get_prompt after get_task to retrieve detailed implementation guidance',
+        'Update task status to "in-progress" immediately when starting work',
+        'Ensure project context is established before task analysis'
+      ]
+    };
   }
 
   /**

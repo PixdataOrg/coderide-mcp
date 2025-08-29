@@ -24,8 +24,8 @@ import { UpdateProjectTool } from './tools/update-project.js';
 import { GetPromptTool } from './tools/get-prompt.js';
 import { StartProjectTool } from './tools/start-project.js';
 // New MCP tools
-import { ListProjectsTool } from './tools/project-list.js';
-import { ListTasksTool } from './tools/task-list.js';
+import { ListProjectsTool } from './tools/list-projects.js';
+import { ListTasksTool } from './tools/list-tasks.js';
 import { NextTaskTool } from './tools/next-task.js';
 
 // Configuration schema for Smithery
@@ -298,7 +298,7 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
 
   const server = new Server(
     {
-      name: 'coderide',
+      name: 'CodeRide',
       version: '0.7.3',
     },
     {

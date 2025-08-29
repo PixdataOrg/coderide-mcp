@@ -4,7 +4,7 @@
  * Retrieves task prompt from the first task of a project
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, StartProjectApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -71,6 +71,33 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
   }
 
   /**
+   * Generate agent instructions for start_project tool
+   */
+  protected generateAgentInstructions(input: StartProjectInput, result: any): AgentInstructions {
+    return {
+      immediateActions: [
+        "Check if git repository exists for this project",
+        "Initialize git repository if not present (git init, initial commit)",
+        "Proceed to get_project for comprehensive project context",
+        "Review the first task prompt for project initialization requirements"
+      ],
+      nextRecommendedTools: ["get_project"],
+      workflowPhase: 'context',
+      gitSetupRequired: true,
+      criticalReminders: [
+        "This is project initialization - establish git repository first",
+        "Always get full project context before starting first task",
+        "Follow the structured workflow: get_project → get_task → get_prompt"
+      ],
+      automationHints: {
+        projectInitialization: "This tool starts a new project workflow",
+        gitSetup: "Ensure version control is established before proceeding",
+        workflowGuidance: "Use get_project next to understand project architecture and standards"
+      }
+    };
+  }
+
+  /**
    * Execute the start-project tool
    */
   async execute(input: StartProjectInput): Promise<unknown> {
@@ -98,7 +125,10 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
         };
       }
       
-      // Return data structured according to the new schema
+      // Git integration: Set up repository if needed
+      const gitSetupResult = await this.setupGitRepository(responseData.project);
+      
+      // Return data structured according to the new schema with git setup status
       return {
         project: {
           slug: responseData.project?.slug || '',
@@ -108,7 +138,8 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
           number: responseData.task?.number || '',
           title: responseData.task?.title || '',
           prompt: responseData.task?.prompt || '' // Access 'prompt' and output as 'prompt'
-        }
+        },
+        gitSetup: gitSetupResult
       };
     } catch (error) {
       const errorMessage = (error instanceof Error) ? error.message : 'An unknown error occurred';
@@ -117,6 +148,72 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
       return {
         isError: true,
         content: [{ type: "text", text: errorMessage }]
+      };
+    }
+  }
+
+  /**
+   * Set up git repository for the project
+   */
+  private async setupGitRepository(projectData: any): Promise<{ status: string; message: string; actions: string[] }> {
+    try {
+      const projectSlug = projectData?.slug;
+      const projectName = projectData?.name || projectSlug;
+      
+      // Check if we're in a git repository
+      const { execSync } = await import('child_process');
+      
+      try {
+        execSync('git rev-parse --git-dir', { stdio: 'ignore' });
+        // Already in a git repository
+        return {
+          status: 'existing',
+          message: 'Git repository already exists',
+          actions: [
+            'Verified existing git repository',
+            'Ready for project development',
+            'Consider creating feature branch for project work'
+          ]
+        };
+      } catch {
+        // Not in a git repository, initialize one
+        try {
+          execSync('git init', { stdio: 'ignore' });
+          execSync('git add .', { stdio: 'ignore' });
+          execSync(`git commit -m "feat: initialize ${projectName} project (${projectSlug})"`, { stdio: 'ignore' });
+          
+          return {
+            status: 'initialized',
+            message: 'Git repository initialized successfully',
+            actions: [
+              'Initialized new git repository',
+              'Created initial commit for project',
+              'Ready for feature branch creation',
+              'Consider setting up remote repository'
+            ]
+          };
+        } catch (gitError) {
+          return {
+            status: 'failed',
+            message: `Git initialization failed: ${gitError}`,
+            actions: [
+              'Manual git setup required',
+              'Run: git init',
+              'Run: git add .',
+              'Run: git commit -m "feat: initialize project"'
+            ]
+          };
+        }
+      }
+    } catch (error) {
+      return {
+        status: 'error',
+        message: `Git setup error: ${error}`,
+        actions: [
+          'Git not available or accessible',
+          'Install git if needed',
+          'Verify git is in PATH'
+        ]
       };
     }
   }

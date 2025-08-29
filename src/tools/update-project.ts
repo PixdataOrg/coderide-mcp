@@ -4,7 +4,7 @@
  * Updates project knowledge and diagram using the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, UpdateProjectApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -131,6 +131,75 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
    */
   constructor(apiClient?: SecureApiClient) {
     super(apiClient);
+  }
+
+  /**
+   * Generate agent-specific instructions for project update workflow
+   */
+  generateAgentInstructions(input: any): AgentInstructions {
+    const isKnowledgeUpdate = input.project_knowledge !== undefined;
+    const isDiagramUpdate = input.project_diagram !== undefined;
+    
+    const baseInstructions: AgentInstructions = {
+      immediateActions: [
+        'Project update completed successfully',
+        'Knowledge base synchronized with current implementation'
+      ],
+      nextRecommendedTools: ['next_task'],
+      workflowPhase: 'completion',
+      criticalReminders: [
+        'Project knowledge and diagram should be updated after significant changes',
+        'Keep documentation current to maintain project coherence'
+      ]
+    };
+
+    // Specific guidance based on update type
+    if (isKnowledgeUpdate && isDiagramUpdate) {
+      baseInstructions.immediateActions = [
+        'Project knowledge and diagram updated',
+        'Complete project documentation synchronized',
+        'Ready for next task in sequence'
+      ];
+      baseInstructions.criticalReminders = [
+        'Both knowledge and architecture documentation updated - excellent practice',
+        'Project context is now current for future tasks'
+      ];
+    } else if (isKnowledgeUpdate) {
+      baseInstructions.immediateActions = [
+        'Project knowledge updated with implementation details',
+        'Consider updating project diagram if architecture changed'
+      ];
+      baseInstructions.criticalReminders = [
+        'Knowledge updated - verify if diagram also needs updates',
+        'Architectural changes should be reflected in both knowledge and diagram'
+      ];
+    } else if (isDiagramUpdate) {
+      baseInstructions.immediateActions = [
+        'Project diagram updated with architectural changes',
+        'Consider updating project knowledge with implementation details'
+      ];
+      baseInstructions.criticalReminders = [
+        'Diagram updated - verify if knowledge also needs updates',
+        'Implementation details should be captured in project knowledge'
+      ];
+    }
+
+    // Add automation hints for knowledge maintenance
+    baseInstructions.automationHints = {
+      knowledgeUpdateTriggers: [
+        'After completing tasks that add new components',
+        'After implementing new technologies or patterns',
+        'After making architectural decisions'
+      ],
+      diagramUpdateTriggers: [
+        'After adding new system components',
+        'After changing component relationships',
+        'After modifying data flow or architecture'
+      ],
+      maintenanceFrequency: 'After each significant task completion'
+    };
+
+    return baseInstructions;
   }
   
   /**

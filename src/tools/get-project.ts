@@ -4,7 +4,7 @@
  * Retrieves project information from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, ProjectApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -63,6 +63,33 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
         },
         required: ["slug"],
         additionalProperties: false
+      }
+    };
+  }
+
+  /**
+   * Generate agent instructions for get_project tool
+   */
+  protected generateAgentInstructions(input: GetProjectInput, result: any): AgentInstructions {
+    return {
+      immediateActions: [
+        "Analyze project_knowledge for architectural patterns and constraints",
+        "Review project_diagram for system structure and relationships",
+        "Understand project standards and coding conventions",
+        "Establish this context as foundation for all subsequent task work"
+      ],
+      nextRecommendedTools: ["get_task", "list_tasks"],
+      workflowPhase: 'context',
+      contextRequired: ["project_knowledge", "project_diagram", "project_standards"],
+      criticalReminders: [
+        "This context is essential for proper task interpretation",
+        "Always reference project knowledge before starting any task",
+        "Follow project standards and architectural patterns"
+      ],
+      automationHints: {
+        contextEstablishment: "This tool provides the foundation for all project work",
+        workflowGuidance: "Use get_task next to select specific task, or list_tasks to see all available tasks",
+        knowledgeBase: "Project knowledge contains critical architectural decisions and patterns"
       }
     };
   }

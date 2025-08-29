@@ -4,7 +4,7 @@
  * Retrieves task prompt from the CodeRide API for a specific task
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, TaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -41,6 +41,69 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
    */
   constructor(apiClient?: SecureApiClient) {
     super(apiClient);
+  }
+
+  /**
+   * Override to require project context before accessing prompts
+   */
+  requiresProjectContext(): boolean {
+    return true;
+  }
+
+  /**
+   * Generate agent-specific instructions for prompt retrieval workflow
+   */
+  generateAgentInstructions(): AgentInstructions {
+    return {
+      immediateActions: [
+        'Retrieve detailed task implementation instructions',
+        'Analyze prompt requirements and constraints',
+        'Prepare implementation strategy based on prompt guidance'
+      ],
+      nextRecommendedTools: ['update_task', 'update_project'],
+      workflowPhase: 'implementation',
+      prerequisiteValidation: {
+        required: ['get_project', 'get_task'],
+        onMissing: 'Task context required - call get_project and get_task first to establish context before accessing prompt'
+      },
+      statusUpdateRequired: true,
+      contextRequired: ['task_details', 'project_knowledge'],
+      statusAwareGuidance: {
+        'to-do': {
+          actions: [
+            'Read prompt instructions carefully',
+            'Update task status to "in-progress" immediately',
+            'Begin implementation following prompt guidance'
+          ],
+          nextTools: ['update_task']
+        },
+        'in-progress': {
+          actions: [
+            'Review prompt for additional guidance',
+            'Continue implementation based on prompt instructions',
+            'Update progress as work advances'
+          ],
+          nextTools: ['update_task']
+        },
+        'completed': {
+          actions: [
+            'Review prompt to ensure all requirements met',
+            'Update project knowledge with implementation impacts',
+            'Move to next task in sequence'
+          ],
+          nextTools: ['update_project', 'next_task']
+        }
+      },
+      workflowCorrection: {
+        correctSequence: ['get_project', 'get_task', 'get_prompt', 'update_task'],
+        redirectMessage: 'Prompt access requires task context. Ensure get_project and get_task have been called first.'
+      },
+      criticalReminders: [
+        'This prompt contains detailed implementation instructions - follow them precisely',
+        'Update task status to "in-progress" immediately after reading prompt',
+        'Use prompt guidance to inform all implementation decisions'
+      ]
+    };
   }
 
   /**
