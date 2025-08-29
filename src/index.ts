@@ -24,8 +24,8 @@ import { UpdateProjectTool } from './tools/update-project.js';
 import { GetPromptTool } from './tools/get-prompt.js';
 import { StartProjectTool } from './tools/start-project.js';
 // New MCP tools
-import { ProjectListTool } from './tools/project-list.js';
-import { TaskListTool } from './tools/task-list.js';
+import { ListProjectsTool } from './tools/list-projects.js';
+import { ListTasksTool } from './tools/list-tasks.js';
 import { NextTaskTool } from './tools/next-task.js';
 
 // Configuration schema for Smithery
@@ -41,8 +41,8 @@ function createMockServer() {
   
   const server = new Server(
     {
-      name: 'coderide-mock',
-      version: '0.7.3',
+      name: 'CodeRide-Mock',
+      version: '0.8.0',
     },
     {
       capabilities: {
@@ -128,7 +128,7 @@ function createMockServer() {
       })
     },
     {
-      name: 'project_list',
+      name: 'list_projects',
       description: "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication.",
       inputSchema: { type: 'object', properties: {}, required: [] },
       handler: async () => ({
@@ -141,7 +141,7 @@ function createMockServer() {
       })
     },
     {
-      name: 'task_list',
+      name: 'list_tasks',
       description: "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status.",
       inputSchema: {
         type: 'object',
@@ -298,8 +298,8 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
 
   const server = new Server(
     {
-      name: 'coderide',
-      version: '0.7.3',
+      name: 'CodeRide',
+      version: '0.8.0',
     },
     {
       capabilities: {
@@ -316,8 +316,8 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
     new GetProjectTool(secureApiClient),
     new UpdateTaskTool(secureApiClient),
     new UpdateProjectTool(secureApiClient),
-    new ProjectListTool(secureApiClient),
-    new TaskListTool(secureApiClient),
+    new ListProjectsTool(secureApiClient),
+    new ListTasksTool(secureApiClient),
     new NextTaskTool(secureApiClient),
   ];
 

@@ -23,6 +23,52 @@ export interface ToolAnnotations {
 }
 
 /**
+ * Agent workflow phases for structured guidance
+ */
+export type WorkflowPhase = 'discovery' | 'context' | 'analysis' | 'implementation' | 'completion';
+
+/**
+ * Prerequisite validation configuration
+ */
+export interface PrerequisiteValidation {
+  required: string[];
+  onMissing: string;
+}
+
+/**
+ * Status-aware guidance based on current state
+ */
+export interface StatusAwareGuidance {
+  [status: string]: {
+    actions: string[];
+    nextTools: string[];
+  };
+}
+
+/**
+ * Agent-specific instructions for workflow automation
+ */
+export interface AgentInstructions {
+  immediateActions: string[];
+  nextRecommendedTools: string[];
+  workflowPhase: WorkflowPhase;
+  prerequisiteValidation?: PrerequisiteValidation;
+  statusUpdateRequired?: boolean;
+  projectUpdateRequired?: boolean;
+  contextRequired?: string[];
+  statusAwareGuidance?: StatusAwareGuidance;
+  gitSetupRequired?: boolean;
+  workflowCorrection?: {
+    correctSequence: string[];
+    redirectMessage: string;
+  };
+  criticalReminders?: string[];
+  automationHints?: {
+    [key: string]: any;
+  };
+}
+
+/**
  * Defines the structure for the full MCP tool definition as expected by the MCP server.
  * The inputSchema here must be a JSON Schema object.
  */
@@ -208,7 +254,91 @@ export abstract class BaseTool<T extends z.ZodType> {
   abstract execute(input: z.infer<T>): Promise<unknown>;
 
   /**
-   * Secure execute wrapper that handles logging and error management
+   * Generate agent instructions for this tool.
+   * Subclasses can override this to provide tool-specific guidance.
+   */
+  protected generateAgentInstructions(input: z.infer<T>, result: any): AgentInstructions {
+    // Default implementation - subclasses should override for specific guidance
+    return {
+      immediateActions: [`Tool ${this.name} executed successfully`],
+      nextRecommendedTools: [],
+      workflowPhase: 'implementation'
+    };
+  }
+
+  /**
+   * Generate contextual agent instructions based on tool result and current state.
+   * This method provides dynamic guidance based on the tool's output.
+   */
+  protected generateContextualGuidance(input: z.infer<T>, result: any): Partial<AgentInstructions> {
+    const guidance: Partial<AgentInstructions> = {};
+
+    // Add status-aware guidance for tools that work with task status
+    if (result && typeof result === 'object' && 'status' in result) {
+      guidance.statusAwareGuidance = this.getStatusAwareGuidance(result.status);
+    }
+
+    // Add prerequisite validation for tools that require context
+    if (this.requiresProjectContext()) {
+      guidance.prerequisiteValidation = {
+        required: ['get_project'],
+        onMissing: 'Project context required - call get_project first'
+      };
+    }
+
+    return guidance;
+  }
+
+  /**
+   * Check if this tool requires project context.
+   * Override in subclasses that need project context.
+   */
+  protected requiresProjectContext(): boolean {
+    return false;
+  }
+
+  /**
+   * Get status-aware guidance based on task status.
+   */
+  protected getStatusAwareGuidance(status: string): StatusAwareGuidance {
+    const guidance: StatusAwareGuidance = {};
+
+    switch (status) {
+      case 'to-do':
+        guidance[status] = {
+          actions: [
+            'Review task requirements and project context',
+            'Update status to "in-progress" when ready to start'
+          ],
+          nextTools: ['get_prompt', 'update_task']
+        };
+        break;
+      case 'in-progress':
+        guidance[status] = {
+          actions: [
+            'Continue task implementation',
+            'Update progress as needed'
+          ],
+          nextTools: ['update_task']
+        };
+        break;
+      case 'completed':
+        guidance[status] = {
+          actions: [
+            'Update project knowledge with implementation impacts',
+            'Update project diagram if architecture changed',
+            'Find next task in sequence'
+          ],
+          nextTools: ['update_project', 'next_task']
+        };
+        break;
+    }
+
+    return guidance;
+  }
+
+  /**
+   * Enhanced secure execute wrapper with agent instruction integration
    */
   async secureExecute(input: z.infer<T>): Promise<unknown> {
     const requestId = InputValidator.generateRequestId();
@@ -224,8 +354,33 @@ export abstract class BaseTool<T extends z.ZodType> {
       // Sanitize output to remove other sensitive information
       const sanitizedResult = InputValidator.sanitizeOutput(tokenRedactedResult);
       
+      // Generate agent instructions for workflow guidance
+      const agentInstructions = this.generateAgentInstructions(input, sanitizedResult);
+      const contextualGuidance = this.generateContextualGuidance(input, sanitizedResult);
+      
+      // Merge instructions with contextual guidance
+      const enhancedInstructions: AgentInstructions = {
+        ...agentInstructions,
+        ...contextualGuidance,
+        // Merge arrays properly
+        immediateActions: [
+          ...agentInstructions.immediateActions,
+          ...(contextualGuidance.immediateActions || [])
+        ],
+        nextRecommendedTools: [
+          ...agentInstructions.nextRecommendedTools,
+          ...(contextualGuidance.nextRecommendedTools || [])
+        ]
+      };
+
+      // Create enhanced result with agent instructions
+      const enhancedResult = {
+        ...sanitizedResult,
+        _agentInstructions: enhancedInstructions
+      };
+      
       logger.info(`Tool ${this.name} execution completed successfully [${requestId}]`);
-      return sanitizedResult;
+      return enhancedResult;
     } catch (error) {
       logger.error(`Tool ${this.name} execution failed [${requestId}]: ${error instanceof Error ? error.message : 'Unknown error'}`);
       

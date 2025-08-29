@@ -4,7 +4,7 @@
  * Updates an existing task using the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, UpdateTaskApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
@@ -76,6 +76,83 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
    */
   constructor(apiClient?: SecureApiClient) {
     super(apiClient);
+  }
+
+  /**
+   * Override to require project context for task updates
+   */
+  requiresProjectContext(): boolean {
+    return true;
+  }
+
+  /**
+   * Generate agent-specific instructions for task update workflow
+   */
+  generateAgentInstructions(input: any): AgentInstructions {
+    const isStatusUpdate = input.status !== undefined;
+    const newStatus = input.status;
+    
+    const baseInstructions: AgentInstructions = {
+      immediateActions: [
+        'Task update completed successfully',
+        'Verify update was applied correctly'
+      ],
+      nextRecommendedTools: [],
+      workflowPhase: 'implementation'
+    };
+
+    // Status-specific guidance
+    if (isStatusUpdate) {
+      switch (newStatus) {
+        case 'in-progress':
+          baseInstructions.immediateActions = [
+            'Task status updated to "in-progress"',
+            'Begin implementation following prompt guidance',
+            'Track progress and update as needed'
+          ];
+          baseInstructions.nextRecommendedTools = ['get_prompt'];
+          baseInstructions.workflowPhase = 'implementation';
+          baseInstructions.criticalReminders = [
+            'Task is now active - ensure consistent progress updates',
+            'Follow prompt instructions precisely during implementation'
+          ];
+          break;
+
+        case 'completed':
+          baseInstructions.immediateActions = [
+            'Task marked as completed',
+            'Update project knowledge with implementation impacts',
+            'Update project diagram if architecture changed'
+          ];
+          baseInstructions.nextRecommendedTools = ['update_project', 'next_task'];
+          baseInstructions.workflowPhase = 'completion';
+          baseInstructions.projectUpdateRequired = true;
+          baseInstructions.criticalReminders = [
+            'CRITICAL: Update project knowledge and diagram after task completion',
+            'Document any architectural changes or new patterns',
+            'Find and start next task in sequence'
+          ];
+          break;
+
+        case 'to-do':
+          baseInstructions.immediateActions = [
+            'Task reset to "to-do" status',
+            'Review task requirements before restarting',
+            'Ensure project context is current'
+          ];
+          baseInstructions.nextRecommendedTools = ['get_task', 'get_prompt'];
+          baseInstructions.workflowPhase = 'analysis';
+          break;
+      }
+    }
+
+    // Add workflow correction guidance
+    baseInstructions.workflowCorrection = {
+      correctSequence: ['get_project', 'get_task', 'get_prompt', 'update_task'],
+      redirectMessage: 'Task updates should follow proper workflow sequence for optimal results'
+    };
+
+    return baseInstructions;
   }
   
   /**

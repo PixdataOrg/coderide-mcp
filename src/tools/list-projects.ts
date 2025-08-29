@@ -1,33 +1,33 @@
 /**
- * Project List Tool
+ * List Projects Tool
  * 
  * Lists all projects in the user workspace from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, ProjectListApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 /**
- * Schema for the project-list tool input
+ * Schema for the list-projects tool input
  * No input parameters required - workspace is extracted from API key
  */
-const ProjectListSchema = z.object({}).strict();
+const ListProjectsSchema = z.object({}).strict();
 
 /**
- * Type for the project-list tool input
+ * Type for the list-projects tool input
  */
-type ProjectListInput = z.infer<typeof ProjectListSchema>;
+type ListProjectsInput = z.infer<typeof ListProjectsSchema>;
 
 /**
- * Project List Tool Implementation
+ * List Projects Tool Implementation
  */
-export class ProjectListTool extends BaseTool<typeof ProjectListSchema> {
-  readonly name = 'project_list';
+export class ListProjectsTool extends BaseTool<typeof ListProjectsSchema> {
+  readonly name = 'list_projects';
   readonly description = "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication.";
-  readonly zodSchema = ProjectListSchema;
+  readonly zodSchema = ListProjectsSchema;
   readonly annotations: ToolAnnotations = {
-    title: "Project List",
+    title: "List Projects",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
@@ -57,10 +57,36 @@ export class ProjectListTool extends BaseTool<typeof ProjectListSchema> {
   }
 
   /**
-   * Execute the project-list tool
+   * Generate agent instructions for list_projects tool
    */
-  async execute(input: ProjectListInput): Promise<unknown> {
-    logger.info('Executing project-list tool', input);
+  protected generateAgentInstructions(input: ListProjectsInput, result: any): AgentInstructions {
+    return {
+      immediateActions: [
+        "Review available projects and their descriptions",
+        "Help user select appropriate project for their work",
+        "Consider project scope and current status for selection"
+      ],
+      nextRecommendedTools: ["start_project", "get_project"],
+      workflowPhase: 'discovery',
+      criticalReminders: [
+        "Use start_project for new project initialization",
+        "Use get_project to understand existing project context"
+      ],
+      automationHints: {
+        projectSelection: "Guide user to select projects based on their current objectives",
+        workflowGuidance: {
+          newProject: "Use start_project for project initialization",
+          existingProject: "Use get_project to establish project context"
+        }
+      }
+    };
+  }
+
+  /**
+   * Execute the list-projects tool
+   */
+  async execute(input: ListProjectsInput): Promise<unknown> {
+    logger.info('Executing list-projects tool', input);
 
     try {
       // Use the injected API client to get project list

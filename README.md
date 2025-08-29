@@ -220,9 +220,9 @@ Retrieves the first or next recommended task for a given project, allowing an AI
 *   **AI Action:** Calls `start_project` with `arguments: { "slug": "MBC" }`.
 *   **Outcome:** AI receives details for the initial task in the 'MBC' project, ready to begin.
 
-### `project_list` ✨ NEW
+### `list_projects` ✨ NEW
 
-Lists all projects in the user's workspace, providing an overview of available projects.
+Lists all projects in the user's workspace, providing an overview of available projects with intelligent workflow guidance.
 
 **Input Schema:**
 ```json
@@ -233,12 +233,12 @@ Lists all projects in the user's workspace, providing an overview of available p
 
 **Example Use Case:**
 *   **User Prompt:** "AI, show me all my projects."
-*   **AI Action:** Calls `project_list` with no arguments.
-*   **Outcome:** AI receives a list of all projects in the workspace with their slugs, names, and basic details.
+*   **AI Action:** Calls `list_projects` with no arguments.
+*   **Outcome:** AI receives a list of all projects in the workspace with their slugs, names, and basic details, plus intelligent guidance for project selection and workflow initiation.
 
-### `task_list` ✨ NEW
+### `list_tasks` ✨ NEW
 
-Shows all tasks within a specific project, organized by status with smart numerical sorting.
+Shows all tasks within a specific project, organized by status with smart numerical sorting and workflow optimization.
 
 **Input Schema:**
 ```json
@@ -249,12 +249,12 @@ Shows all tasks within a specific project, organized by status with smart numeri
 
 **Example Use Case:**
 *   **User Prompt:** "AI, what tasks are available in the CRD project?"
-*   **AI Action:** Calls `task_list` with `arguments: { "slug": "CRD" }`.
-*   **Outcome:** AI receives all tasks in the CRD project, sorted numerically (CRD-1, CRD-2, CRD-3...) and organized by status columns.
+*   **AI Action:** Calls `list_tasks` with `arguments: { "slug": "CRD" }`.
+*   **Outcome:** AI receives all tasks in the CRD project, sorted numerically (CRD-1, CRD-2, CRD-3...) and organized by status columns, with intelligent task selection guidance.
 
 ### `next_task` ✨ NEW
 
-Retrieves the next task in sequence for workflow automation, perfect for continuous development flows.
+Retrieves the next task in sequence for workflow automation, perfect for continuous development flows with intelligent sequencing.
 
 **Input Schema:**
 ```json
@@ -266,10 +266,12 @@ Retrieves the next task in sequence for workflow automation, perfect for continu
 **Example Use Case:**
 *   **User Prompt:** "AI, I just finished CRD-1. What's next?"
 *   **AI Action:** Calls `next_task` with `arguments: { "number": "CRD-1" }`.
-*   **Outcome:** AI receives details for CRD-2, enabling seamless workflow continuation.
+*   **Outcome:** AI receives details for CRD-2, enabling seamless workflow continuation with prerequisite validation and contextual guidance.
 
 ## 💡 Technical Highlights
 
+*   **🧠 AI-Native Workflow Optimization:** Advanced agent instruction system with MCP 2025 structured tool output and intelligent workflow orchestration for enhanced AI productivity.
+*   **🔄 Intelligent Task Sequencing:** Prerequisite validation, status-aware guidance, and automated workflow phases (Discovery → Context → Analysis → Implementation → Completion).
 *   **Security-First Design:** Comprehensive input validation, secure API client with retry logic, and workspace-scoped authentication ensure data integrity and safe AI operations.
 *   **Production-Ready Reliability:** Exponential backoff retry mechanisms, 90-second timeouts, and stable MCP SDK version (^1.0.3) provide enterprise-grade stability.
 *   **Workspace-Centered Authentication:** API keys are tied to specific workspaces. All operations are automatically scoped, simplifying requests and enhancing security. No need to pass `workspaceId`!
@@ -285,6 +287,14 @@ For security vulnerabilities, please see our [Security Policy](SECURITY.md) for 
 
 ## 🔧 Recent Improvements
 
+### v0.8.0 - Agent Workflow Optimization 🚀
+- **🧠 Intelligent Agent Instructions**: Implemented comprehensive agent instruction system with MCP 2025 structured tool output
+- **🔄 Workflow Orchestration**: Added prerequisite validation, status-aware guidance, and automated workflow phases
+- **📁 Enhanced Tool Organization**: Renamed tools for consistency (`project_list` → `list_projects`, `task_list` → `list_tasks`)
+- **⚡ AI Productivity Boost**: All 9 tools now include contextual guidance, automation hints, and workflow intelligence
+- **🔒 Maintained Compatibility**: 100% backward compatibility with existing integrations and security systems
+
+### Previous Improvements
 - **Enhanced Reliability**: Implemented exponential backoff retry logic for improved connection stability
 - **Optimized Timeouts**: Increased API timeouts to 90 seconds for better handling of complex operations
 - **Stable Dependencies**: Pinned MCP SDK to stable version (^1.0.3) for consistent behavior

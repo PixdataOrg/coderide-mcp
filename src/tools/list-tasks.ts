@@ -1,17 +1,17 @@
 /**
- * Task List Tool
+ * List Tasks Tool
  * 
  * Lists all tasks within a project by slug from the CodeRide API
  */
 import { z } from 'zod';
-import { BaseTool, MCPToolDefinition, ToolAnnotations } from '../utils/base-tool.js';
+import { BaseTool, MCPToolDefinition, ToolAnnotations, AgentInstructions } from '../utils/base-tool.js';
 import { SecureApiClient, TaskListApiResponse } from '../utils/secure-api-client.js';
 import { logger } from '../utils/logger.js';
 
 /**
- * Schema for the task-list tool input
+ * Schema for the list-tasks tool input
  */
-const TaskListSchema = z.object({
+const ListTasksSchema = z.object({
   // Project slug (URL-friendly identifier)
   slug: z.string({
     required_error: "Project slug is required"
@@ -20,19 +20,19 @@ const TaskListSchema = z.object({
 }).strict();
 
 /**
- * Type for the task-list tool input
+ * Type for the list-tasks tool input
  */
-type TaskListInput = z.infer<typeof TaskListSchema>;
+type ListTasksInput = z.infer<typeof ListTasksSchema>;
 
 /**
- * Task List Tool Implementation
+ * List Tasks Tool Implementation
  */
-export class TaskListTool extends BaseTool<typeof TaskListSchema> {
-  readonly name = 'task_list';
+export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
+  readonly name = 'list_tasks';
   readonly description = "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status.";
-  readonly zodSchema = TaskListSchema;
+  readonly zodSchema = ListTasksSchema;
   readonly annotations: ToolAnnotations = {
-    title: "Task List",
+    title: "List Tasks",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
@@ -68,10 +68,33 @@ export class TaskListTool extends BaseTool<typeof TaskListSchema> {
   }
 
   /**
-   * Execute the task-list tool
+   * Generate agent instructions for list_tasks tool
    */
-  async execute(input: TaskListInput): Promise<unknown> {
-    logger.info('Executing task-list tool', input);
+  protected generateAgentInstructions(input: ListTasksInput, result: any): AgentInstructions {
+    return {
+      immediateActions: [
+        "Review available tasks and their current status",
+        "Help user select appropriate task to work on",
+        "Consider task status (to-do, in-progress, completed) for workflow planning"
+      ],
+      nextRecommendedTools: ["get_project", "get_task"],
+      workflowPhase: 'discovery',
+      criticalReminders: [
+        "Always establish project context before starting selected task",
+        "Follow optimal workflow: get_project → get_task → get_prompt"
+      ],
+      automationHints: {
+        taskSelection: "Guide user to select tasks based on priority and dependencies",
+        workflowGuidance: "Ensure project context is established before task work begins"
+      }
+    };
+  }
+
+  /**
+   * Execute the list-tasks tool
+   */
+  async execute(input: ListTasksInput): Promise<unknown> {
+    logger.info('Executing list-tasks tool', input);
 
     try {
       // Use the injected API client to get task list
