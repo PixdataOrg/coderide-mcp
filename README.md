@@ -287,7 +287,16 @@ For security vulnerabilities, please see our [Security Policy](SECURITY.md) for 
 
 ## 🔧 Recent Improvements
 
-### v0.8.0 - Agent Workflow Optimization 🚀
+### v0.9.0 - Comprehensive Agent Workflow Enhancement 🚀
+- **🧠 NLP Recognition System**: Smart detection of project references and user intent in natural language for improved agent understanding
+- **🧪 Mandatory Testing Verification**: Comprehensive testing pipeline with unit + integration test support, coverage validation (80% unit, 90% integration)
+- **📝 Automatic Git Commits**: Full Conventional Commits 1.0.0 compliance with semantic versioning and automated commit generation
+- **🎯 Project Knowledge Optimization**: Intelligent project knowledge management with consistency validation and standardized schemas
+- **⚡ Enhanced Agent Instructions**: MCP 2025 structured tool output with workflow intelligence and phase-based guidance
+- **🔒 Security & Performance**: Input validation, command injection prevention, singleton patterns, and comprehensive error handling
+- **🔄 Complete Workflow Automation**: Discovery → Context → Analysis → Implementation → Completion phases with intelligent sequencing
+
+### v0.8.0 - Agent Workflow Optimization
 - **🧠 Intelligent Agent Instructions**: Implemented comprehensive agent instruction system with MCP 2025 structured tool output
 - **🔄 Workflow Orchestration**: Added prerequisite validation, status-aware guidance, and automated workflow phases
 - **📁 Enhanced Tool Organization**: Renamed tools for consistency (`project_list` → `list_projects`, `task_list` → `list_tasks`)
