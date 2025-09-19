@@ -86,7 +86,7 @@ For non-Smithery deployments, add this configuration to your MCP client:
 ```json
 {
   "mcpServers": {
-    "coderide": {
+    "CodeRide": {
       "command": "npx",
       "args": ["-y", "@coderide/mcp"],
       "env": {
