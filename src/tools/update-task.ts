@@ -27,8 +27,8 @@ const UpdateTaskSchema = z.object({
     .max(2000, "Description cannot exceed 2000 characters")
     .optional()
     .describe("New task description"),
-  status: z.enum(['to-do', 'in-progress', 'completed'], {
-    invalid_type_error: "Status must be one of: to-do, in-progress, completed"
+  status: z.enum(['to-do', 'in-progress', 'done'], {
+    invalid_type_error: "Status must be one of: to-do, in-progress, done"
   }).optional().describe("New task status"),
 }).strict().refine(
   // Ensure at least one field to update is provided
@@ -118,9 +118,9 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           ];
           break;
 
-        case 'completed':
+        case 'done':
           baseInstructions.immediateActions = [
-            'Task marked as completed',
+            'Task marked as done',
             'Update project knowledge with implementation impacts',
             'Update project diagram if architecture changed'
           ];
@@ -177,8 +177,8 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           },
           status: {
             type: "string",
-            enum: ["to-do", "in-progress", "completed"],
-            description: "Optional. The new status for the task. Must be one of: 'to-do', 'in-progress', 'completed'. If provided, it will update the task's current status."
+            enum: ["to-do", "in-progress", "done"],
+            description: "Optional. The new status for the task. Must be one of: 'to-do', 'in-progress', 'done'. If provided, it will update the task's current status."
           }
         },
         required: ["number"], // Zod .refine() handles the "at least one update field" logic at runtime.

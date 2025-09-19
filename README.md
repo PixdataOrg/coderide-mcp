@@ -126,7 +126,7 @@ Retrieves detailed information about a specific task by its number (e.g., "TCA-3
 ```json
 {
   "number": "task-number (e.g., 'TCA-3')",
-  "status": "to-do|in-progress|completed", // Optional: filter by status
+  "status": "to-do|in-progress|done", // Optional: filter by status
 }
 ```
 
@@ -144,13 +144,13 @@ Updates an existing task's description, status, or other mutable fields.
 {
   "number": "task-number-identifier",
   "description": "updated-task-description", // Optional
-  "status": "to-do|in-progress|completed"   // Optional
+  "status": "to-do|in-progress|done"   // Optional
 }
 ```
 
 **Example Use Case:**
-*   **User Prompt:** "AI, please mark task BUG-42 as 'completed' and add a note: 'Fixed the off-by-one error.'"
-*   **AI Action:** Calls `update_task` with `arguments: { "number": "BUG-42", "status": "completed", "description": "Fixed the off-by-one error." }`.
+*   **User Prompt:** "AI, please mark task BUG-42 as 'done' and add a note: 'Fixed the off-by-one error.'"
+*   **AI Action:** Calls `update_task` with `arguments: { "number": "BUG-42", "status": "done", "description": "Fixed the off-by-one error." }`.
 *   **Outcome:** Task BUG-42 is updated in CodeRide.
 
 ### `get_prompt`
