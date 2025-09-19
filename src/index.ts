@@ -42,7 +42,7 @@ function createMockServer() {
   const server = new Server(
     {
       name: 'CodeRide-Mock',
-      version: '0.9.0',
+      version: '0.9.1',
     },
     {
       capabilities: {
@@ -208,7 +208,7 @@ function createMockServer() {
         properties: {
           number: { type: 'string', pattern: '^[A-Za-z]{3}-\\d+$' },
           description: { type: 'string' },
-          status: { type: 'string', enum: ['to-do', 'in-progress', 'completed'] }
+          status: { type: 'string', enum: ['to-do', 'in-progress', 'done'] }
         },
         required: ['number']
       },
@@ -299,7 +299,7 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
   const server = new Server(
     {
       name: 'CodeRide',
-      version: '0.9.0',
+      version: '0.9.1',
     },
     {
       capabilities: {
