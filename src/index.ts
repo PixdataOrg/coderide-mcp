@@ -5,9 +5,12 @@
  * Compatible with both STDIO and Smithery HTTP deployments
  */
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { CallToolRequestSchema, ErrorCode, ListToolsRequestSchema, McpError } from '@modelcontextprotocol/sdk/types.js';
+import express from 'express';
+import http from 'http';
 import { z } from 'zod';
+import { HeartbeatManager } from './utils/heartbeat.js';
+import { BroadcastableStdioServerTransport } from './utils/stdio-transport.js';
 
 // Import utilities
 import { logger } from './utils/logger.js';
@@ -42,7 +45,7 @@ function createMockServer() {
   const server = new Server(
     {
       name: 'CodeRide-Mock',
-      version: '0.9.1',
+      version: '0.9.2',
     },
     {
       capabilities: {
@@ -299,7 +302,7 @@ function createProductionServer(smitheryConfig: z.infer<typeof configSchema>) {
   const server = new Server(
     {
       name: 'CodeRide',
-      version: '0.9.1',
+      version: '0.9.2',
     },
     {
       capabilities: {
@@ -416,14 +419,22 @@ export default function createServer({ config }: { config?: z.infer<typeof confi
  */
 class CodeRideServer {
   private server: Server;
+  private httpServer: http.Server;
+  private heartbeatManager: HeartbeatManager;
 
   constructor() {
-    // For STDIO mode, check if we have a real API key in environment
     const envApiKey = process.env.CODERIDE_API_KEY;
     const config = envApiKey ? { CODERIDE_API_KEY: envApiKey } : undefined;
     this.server = createServer({ config });
+    this.heartbeatManager = new HeartbeatManager();
 
-    // Set up graceful shutdown for STDIO mode
+    const app = express();
+    app.get('/health', (req, res) => {
+      res.status(200).send('OK');
+    });
+
+    this.httpServer = http.createServer(app);
+
     process.on('SIGINT', async () => {
       await this.shutdown();
       process.exit(0);
@@ -435,23 +446,17 @@ class CodeRideServer {
     });
   }
 
-  /**
-   * Start the server with STDIO transport
-   */
   public async start(): Promise<void> {
     try {
       logger.info('Starting CodeRide MCP server');
-      
-      // Create default API config for STDIO mode
+
       const apiConfig = createApiConfig();
       logger.info(`Using CodeRide API URL: ${apiConfig.CODERIDE_API_URL}`);
 
-      // Create stdio transport
-      const transport = new StdioServerTransport();
-      
-      // Connect server to transport
+      const transport = new BroadcastableStdioServerTransport();
       await this.server.connect(transport);
-      
+      this.heartbeatManager.add(transport);
+
       logger.info('CodeRide MCP server started and ready to receive requests');
     } catch (error) {
       logger.error('Failed to start server', error as Error);
@@ -459,16 +464,13 @@ class CodeRideServer {
     }
   }
 
-  /**
-   * Shutdown the server
-   */
   private async shutdown(): Promise<void> {
     logger.info('Shutting down CodeRide MCP server');
-    
-    // Shutdown token security manager
+
     tokenSecurityManager.shutdown();
-    
+
     await this.server.close();
+    this.httpServer.close();
     logger.info('Server shutdown complete');
   }
 }
