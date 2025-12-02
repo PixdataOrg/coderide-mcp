@@ -8,21 +8,26 @@ import { detectInstalledClients, getClientHandlerById } from './client-detector.
 import { writeConfigToClients, WriteResult } from './config-writer.js';
 import { promptForApiKey, promptForClientSelection, validateApiKey } from './prompts.js';
 
-// CodeRide brand color
-const CODERIDE_COLOR = '#54CADE';
-const coderideCyan = chalk.hex(CODERIDE_COLOR);
+// CodeRide brand colors
+const CODERIDE_CYAN = '#53CADE';
+const CODERIDE_PURPLE = '#7867EE';
+const CODERIDE_DARK = '#113C69';
+
+const cyan = chalk.hex(CODERIDE_CYAN);
+const purple = chalk.hex(CODERIDE_PURPLE);
+const darkBlue = chalk.hex(CODERIDE_DARK);
 
 const API_KEY_URL = 'https://app.coderide.ai/dashboard/account/api-keys';
 
 /**
- * Print styled message
+ * Print styled messages
  */
 function printInfo(message: string): void {
-  console.log(coderideCyan('◆'), message);
+  console.log(cyan('◆'), message);
 }
 
 function printSuccess(message: string): void {
-  console.log(chalk.green('✓'), message);
+  console.log(purple('✓'), message);
 }
 
 function printError(message: string): void {
@@ -30,7 +35,11 @@ function printError(message: string): void {
 }
 
 function printWarning(message: string): void {
-  console.log(chalk.yellow('⚠'), message);
+  console.log(chalk.yellow('!'), message);
+}
+
+function printStep(step: number, message: string): void {
+  console.log(darkBlue(`[${step}/4]`), message);
 }
 
 /**
@@ -38,35 +47,50 @@ function printWarning(message: string): void {
  */
 export async function runWizard(): Promise<void> {
   console.log();
-  console.log(coderideCyan.bold('CodeRide MCP Setup'));
+  console.log(cyan.bold('CodeRide MCP Setup'));
+  console.log(darkBlue('Configure your AI coding assistants to work with CodeRide'));
   console.log();
 
   // Step 1: Detect installed clients
+  printStep(1, 'Detecting installed MCP clients...');
   const detectedClients = detectInstalledClients();
 
   if (detectedClients.length === 0) {
+    console.log();
     printWarning('No MCP clients detected on your system.');
     console.log();
-    console.log('Supported clients: Cursor, Claude Desktop, Claude Code, VS Code, Codex CLI');
-    console.log('Please install one of these clients first, then run this wizard again.');
+    console.log('  Supported clients:');
+    console.log('  - Cursor');
+    console.log('  - Claude Desktop');
+    console.log('  - Claude Code');
+    console.log('  - VS Code');
+    console.log('  - Codex CLI');
+    console.log();
+    console.log('  Install one of these clients first, then run this wizard again.');
     process.exit(1);
   }
 
+  console.log(darkBlue(`  Found ${detectedClients.length} client(s): ${detectedClients.map(c => c.handler.name).join(', ')}`));
+  console.log();
+
   // Step 2: Select clients
+  printStep(2, 'Select clients to configure');
   const selectedClientIds = await promptForClientSelection(detectedClients);
 
   if (selectedClientIds.length === 0) {
+    console.log();
     printWarning('No clients selected. Exiting.');
     process.exit(0);
   }
 
   console.log();
 
-  // Step 3: Open browser for API key
-  printInfo('Opened your project settings. If the link didn\'t open automatically, open the following URL');
-  console.log('  in your browser to get an API key:');
+  // Step 3: Get API key
+  printStep(3, 'Get your CodeRide API key');
   console.log();
-  console.log(coderideCyan(API_KEY_URL));
+  printInfo('Opening CodeRide settings in your browser...');
+  console.log(darkBlue('  If the browser did not open, visit:'));
+  console.log(`  ${cyan(API_KEY_URL)}`);
   console.log();
 
   // Try to open browser
@@ -76,7 +100,6 @@ export async function runWizard(): Promise<void> {
     // Silently fail if browser can't be opened
   }
 
-  // Step 4: Get API key
   const apiKey = await promptForApiKey();
 
   // Validate API key
@@ -86,12 +109,12 @@ export async function runWizard(): Promise<void> {
     process.exit(1);
   }
 
-  console.log();
   printSuccess('API key validated');
   console.log();
 
-  // Step 5: Write configurations
-  printInfo('Writing configuration...');
+  // Step 4: Write configurations
+  printStep(4, 'Writing configuration files');
+  console.log();
 
   const selectedHandlers = selectedClientIds
     .map(id => getClientHandlerById(id))
@@ -102,7 +125,8 @@ export async function runWizard(): Promise<void> {
   // Print results
   for (const result of results) {
     if (result.success) {
-      printSuccess(result.clientName);
+      printSuccess(`${result.clientName}`);
+      console.log(darkBlue(`    ${result.configPath}`));
     } else {
       printError(`${result.clientName}: ${result.error}`);
     }
@@ -110,12 +134,13 @@ export async function runWizard(): Promise<void> {
 
   console.log();
 
-  // Step 6: Summary
+  // Summary
   const successCount = results.filter(r => r.success).length;
   const failCount = results.filter(r => !r.success).length;
 
   if (successCount > 0) {
-    printInfo('Setup complete! Restart your IDE to start using CodeRide.');
+    console.log(cyan.bold('Setup complete'));
+    console.log(darkBlue(`Configured ${successCount} client(s). Restart your IDE to start using CodeRide.`));
   }
 
   if (failCount > 0) {

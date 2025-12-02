@@ -46,18 +46,18 @@ export async function promptForClientSelection(
   const choices = detectedClients.map(client => ({
     name: client.handler.name,
     value: client.handler.id,
-    checked: true, // Pre-select all detected clients
+    checked: false, // Don't pre-select - let user explicitly choose
   }));
 
   const { selectedClients } = await inquirer.prompt([
     {
       type: 'checkbox',
       name: 'selectedClients',
-      message: 'Select which MCP clients to install the MCP server to:',
+      message: 'Select clients to configure (space to toggle, enter to confirm):',
       choices,
       validate: (answer: string[]) => {
         if (answer.length === 0) {
-          return 'You must select at least one client';
+          return 'Select at least one client (use space to toggle)';
         }
         return true;
       },
