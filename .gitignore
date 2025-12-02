@@ -37,3 +37,10 @@ test/
 .clineignore
 .clinerules
 docs/
+
+# AI Coding Assistants
+CLAUDE.md
+.claude
+
+# GitHub
+.github
