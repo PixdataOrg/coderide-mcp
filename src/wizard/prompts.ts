@@ -53,11 +53,11 @@ export async function promptForClientSelection(
     {
       type: 'checkbox',
       name: 'selectedClients',
-      message: 'Select clients to configure (space to toggle, enter to confirm):',
+      message: '(Toggle: Space, Confirm: Enter, Toggle All: A, Cancel: CTRL + C)',
       choices,
       validate: (answer: string[]) => {
         if (answer.length === 0) {
-          return 'Select at least one client (use space to toggle)';
+          return 'Select at least one client';
         }
         return true;
       },
