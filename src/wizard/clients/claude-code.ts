@@ -53,7 +53,8 @@ export class ClaudeCodeHandler implements ClientHandler {
       fs.copyFileSync(configPath, backupPath);
     }
 
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
+    // Write with restrictive permissions (user-only readable/writable)
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2), { mode: 0o600 });
   }
 
   getConfigKey(): 'mcpServers' | 'servers' {

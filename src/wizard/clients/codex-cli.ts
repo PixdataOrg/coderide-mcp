@@ -103,7 +103,8 @@ export class CodexCLIHandler implements ClientHandler {
     }
 
     const tomlString = TOML.stringify(existingConfig as TOML.JsonMap);
-    fs.writeFileSync(configPath, tomlString);
+    // Write with restrictive permissions (user-only readable/writable)
+    fs.writeFileSync(configPath, tomlString, { mode: 0o600 });
   }
 
   getConfigKey(): 'mcpServers' | 'servers' {
@@ -156,6 +157,7 @@ export class CodexCLIHandler implements ClientHandler {
     };
 
     const tomlString = TOML.stringify(existingConfig as TOML.JsonMap);
-    fs.writeFileSync(configPath, tomlString);
+    // Write with restrictive permissions (user-only readable/writable)
+    fs.writeFileSync(configPath, tomlString, { mode: 0o600 });
   }
 }
