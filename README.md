@@ -287,6 +287,15 @@ For security vulnerabilities, please see our [Security Policy](SECURITY.md) for 
 
 ## 🔧 Recent Improvements
 
+### v0.9.3 - Interactive Installation Wizard 🧙
+- **🎯 CLI Installation Wizard**: Interactive setup with `npx @coderide/mcp add` for easy configuration
+- **🔍 Auto-Detection**: Automatically detects installed MCP clients (Cursor, Claude Desktop, Claude Code, VS Code, Codex CLI)
+- **🎨 Enhanced UX**: Clean wizard output with status indicators and brand colors
+- **⚙️ Smart Config Management**: Detects unchanged configs to avoid unnecessary writes, creates backups automatically
+- **🚀 CLI Flags**: `--no-open` to skip browser opening, `--force` to show all clients
+- **📝 Multi-Format Support**: Handles both JSON (most clients) and TOML (Codex CLI) configuration formats
+- **🔒 Secure by Default**: Config files written with restrictive permissions (0o600), API key validation
+
 ### v0.9.0 - Comprehensive Agent Workflow Enhancement 🚀
 - **🧠 NLP Recognition System**: Smart detection of project references and user intent in natural language for improved agent understanding
 - **🧪 Mandatory Testing Verification**: Comprehensive testing pipeline with unit + integration test support, coverage validation (80% unit, 90% integration)
