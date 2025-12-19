@@ -43,17 +43,24 @@ export async function promptForClientSelection(
     return [];
   }
 
-  const choices = detectedClients.map(client => ({
-    name: client.handler.name,
-    value: client.handler.id,
-    checked: false, // Don't pre-select - let user explicitly choose
-  }));
+  const choices = detectedClients
+    .map(client => {
+      const location = client.configPath || 'config path not found';
+      const installed = client.handler.isInstalled();
+      const note = installed ? '' : ' (not detected; will create config)';
+      return {
+        name: `${client.handler.name} — ${location}${note}`,
+        value: client.handler.id,
+        checked: false, // Don't pre-select - let user explicitly choose
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const { selectedClients } = await inquirer.prompt([
     {
       type: 'checkbox',
       name: 'selectedClients',
-      message: '(Toggle: Space, Confirm: Enter, Toggle All: A, Cancel: CTRL + C)',
+      message: 'Select clients',
       choices,
       validate: (answer: string[]) => {
         if (answer.length === 0) {

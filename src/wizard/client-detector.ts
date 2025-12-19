@@ -24,19 +24,21 @@ const ALL_HANDLERS: ClientHandler[] = [
 /**
  * Detect all installed MCP clients
  */
-export function detectInstalledClients(): DetectedClient[] {
+export function detectInstalledClients(includeAll = false): DetectedClient[] {
   const detected: DetectedClient[] = [];
 
   for (const handler of ALL_HANDLERS) {
-    if (handler.isInstalled()) {
-      const configPath = handler.getConfigPath();
-      if (configPath) {
-        detected.push({
-          handler,
-          configPath,
-          hasExistingConfig: handler.readConfig() !== null,
-        });
-      }
+    if (!includeAll && !handler.isInstalled()) {
+      continue;
+    }
+
+    const configPath = handler.getConfigPath();
+    if (configPath) {
+      detected.push({
+        handler,
+        configPath,
+        hasExistingConfig: handler.readConfig() !== null,
+      });
     }
   }
 

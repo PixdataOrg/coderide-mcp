@@ -20,8 +20,14 @@ program
 program
   .command('add')
   .description('Install CodeRide MCP to your AI coding assistants')
-  .action(async () => {
-    await runWizard();
+  .option('--no-open', 'Do not open the browser for API key retrieval')
+  .option('--force', 'Show all supported clients, even if not detected')
+  .action(async options => {
+    await runWizard({
+      // Commander exposes --no-open as options.open === false
+      openBrowser: options.open !== false,
+      forceAllClients: options.force === true,
+    });
   });
 
 program

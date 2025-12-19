@@ -17,71 +17,102 @@ const purple = chalk.hex(CODERIDE_PURPLE);
 
 const API_KEY_URL = 'https://app.coderide.ai/dashboard/account/api-keys';
 
+interface WizardOptions {
+  openBrowser?: boolean;
+  forceAllClients?: boolean;
+}
+
+function formatTitle(): void {
+  console.log(cyan.bold('== CodeRide =='));
+}
+
+function formatFoundClients(count: number, names: string[]): void {
+  const joined = names.join(', ');
+  console.log(`  Found (${count}): ${joined}`);
+}
+
+function formatStatus(
+  label: string,
+  path: string,
+  status: 'ok' | 'unchanged' | 'fail'
+): void {
+  const statusText =
+    status === 'ok'
+      ? chalk.green('[OK]')
+      : status === 'unchanged'
+        ? chalk.blue('[UNCHANGED]')
+        : chalk.red('[FAIL]');
+  console.log(`  ${statusText} ${label}  ${path}`);
+}
+
 /**
  * Main wizard entry point
  */
-export async function runWizard(): Promise<void> {
+export async function runWizard(options: WizardOptions = {}): Promise<void> {
+  const openBrowser = options.openBrowser !== false;
+  const forceAllClients = options.forceAllClients === true;
+
   console.log();
-  console.log(cyan.bold('CodeRide MCP Setup'));
+  formatTitle();
   console.log();
 
   // Step 1: Detect installed clients
-  const detectedClients = detectInstalledClients();
+  console.log(purple('> Detecting clients'));
+  const detectedClients = detectInstalledClients(forceAllClients);
+  const detectedNames = detectedClients.map(c => c.handler.name);
 
   if (detectedClients.length === 0) {
-    console.log(purple('◆'), 'No MCP clients detected on your system.');
-    console.log('│');
-    console.log('│  Supported clients: Cursor, Claude Desktop, Claude Code, VS Code, Codex CLI');
-    console.log('│  Install one of these clients first, then run this wizard again.');
+    console.log('  No MCP clients detected.');
+    console.log('  Supported: Cursor, Claude Desktop, Claude Code, VS Code, Codex CLI');
+    console.log('  Install a client, then re-run this wizard.');
     console.log();
     process.exit(1);
   }
 
-  console.log(purple('◇'), 'Detecting installed MCP clients...');
-  console.log('│  Found:', cyan(detectedClients.map(c => c.handler.name).join(', ')));
-  console.log('│');
+  formatFoundClients(detectedClients.length, detectedNames);
+  console.log();
 
   // Step 2: Select clients
-  console.log(purple('◆'), 'Select which MCP clients to configure:');
+  console.log(purple('> Select clients (Space toggle, Enter confirm, A toggle all, Ctrl+C cancel)'));
   const selectedClientIds = await promptForClientSelection(detectedClients);
 
   if (selectedClientIds.length === 0) {
-    console.log('│');
-    console.log(purple('◆'), 'No clients selected. Exiting.');
+    console.log('  No clients selected. Exiting.');
     console.log();
     process.exit(0);
   }
 
-  console.log('│');
-
   // Step 3: Get API key
-  console.log(purple('◆'), 'Opened your project settings. If the link didn\'t open automatically, open the following URL');
-  console.log('│  in your browser to get an API key:');
-  console.log('│');
-  console.log(cyan(API_KEY_URL));
-  console.log('│');
+  console.log();
+  console.log(purple('> API key'));
+  console.log('  Opening dashboard for API key (or open manually):');
+  console.log(`  ${cyan(API_KEY_URL)}`);
 
   // Try to open browser
-  try {
-    await open(API_KEY_URL);
-  } catch {
-    // Silently fail if browser can't be opened
+  if (openBrowser) {
+    try {
+      await open(API_KEY_URL);
+    } catch {
+      console.log('  (Browser not opened; copy URL above)');
+    }
+  } else {
+    console.log('  (Browser open skipped by flag)');
   }
 
-  const apiKey = await promptForApiKey();
-
-  // Validate API key
-  const validation = validateApiKey(apiKey);
-  if (validation !== true) {
-    console.log(purple('◆'), chalk.red(typeof validation === 'string' ? validation : 'Invalid API key'));
-    process.exit(1);
+  let apiKey = '';
+  while (true) {
+    apiKey = await promptForApiKey();
+    const validation = validateApiKey(apiKey);
+    if (validation === true) {
+      break;
+    }
+    console.log(`  ${chalk.red(typeof validation === 'string' ? validation : 'Invalid API key')}`);
   }
-
-  console.log(purple('◇'), 'API key validated');
-  console.log('│');
+  console.log('  API key validated');
 
   // Step 4: Write configurations
-  console.log(purple('◆'), 'Writing configuration...');
+  console.log();
+  console.log(purple('> Write configs'));
 
   const selectedHandlers = selectedClientIds
     .map(id => getClientHandlerById(id))
@@ -90,29 +121,32 @@ export async function runWizard(): Promise<void> {
   const results = writeConfigToClients(selectedHandlers, apiKey);
 
   // Print results
+  console.log();
   for (const result of results) {
-    if (result.success) {
-      console.log(purple('◇'), result.clientName);
-      console.log('│ ', cyan(result.configPath));
+    if (result.status === 'ok') {
+      formatStatus(result.clientName, result.configPath, 'ok');
+    } else if (result.status === 'unchanged') {
+      formatStatus(result.clientName, `${result.configPath}  (already configured, unchanged)`, 'unchanged');
     } else {
-      console.log(purple('◆'), chalk.red(`${result.clientName}: ${result.error}`));
+      formatStatus(result.clientName, `${result.configPath}  (${result.error ?? 'error'})`, 'fail');
     }
   }
 
-  console.log('│');
-
   // Summary
-  const successCount = results.filter(r => r.success).length;
-  const failCount = results.filter(r => !r.success).length;
+  const writtenCount = results.filter(r => r.status === 'ok').length;
+  const unchangedCount = results.filter(r => r.status === 'unchanged').length;
+  const failCount = results.filter(r => r.status === 'fail').length;
 
-  if (successCount > 0) {
-    console.log(cyan.bold('Setup complete'));
-    console.log(`Configured ${successCount} client(s). Restart your IDE to start using CodeRide.`);
+  console.log();
+  console.log(purple('> Summary'));
+
+  if (writtenCount + unchangedCount > 0) {
+    console.log(`  Configured ${writtenCount}; unchanged ${unchangedCount}; failed ${failCount}.`);
+    console.log('  Restart your IDE(s) to start using CodeRide.');
   }
 
   if (failCount > 0) {
-    console.log();
-    console.log(purple('◆'), `${failCount} client(s) failed to configure. Check the errors above.`);
+    console.log(`  ${failCount} client(s) failed. See errors above.`);
   }
 
   console.log();
