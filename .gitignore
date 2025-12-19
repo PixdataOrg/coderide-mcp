@@ -37,3 +37,9 @@ test/
 .clineignore
 .clinerules
 docs/
+
+#Coding tools
+CLAUDE.md
+.claude
+.github
+AGENTS.md
