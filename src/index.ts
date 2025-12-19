@@ -475,19 +475,31 @@ class CodeRideServer {
   }
 }
 
-// Only start STDIO server if this file is run directly (not imported by Smithery)
+/**
+ * Start the STDIO server
+ * This function is exported for use by the CLI
+ */
+export async function startServer(): Promise<void> {
+  const server = new CodeRideServer();
+  await server.start();
+}
+
+// Only start STDIO server if this file is run directly (not imported by Smithery or CLI)
 // Use Node.js compatible approach that works in both ES modules and CommonJS
 const isMainModule = () => {
   try {
     // ES modules approach
     if (typeof import.meta !== 'undefined' && import.meta.url) {
-      return import.meta.url === `file://${process.argv[1]}`;
+      const currentPath = import.meta.url;
+      const argPath = `file://${process.argv[1]}`;
+      // Check if run directly (not through cli.ts)
+      return currentPath === argPath && !process.argv[1]?.endsWith('cli.js');
     }
-    
-    // Fallback: check if this file is the main entry point
-    return process.argv[1]?.endsWith('src/index.ts') || 
-           process.argv[1]?.endsWith('dist/index.js') ||
-           process.argv[1]?.endsWith('index.js');
+
+    // Fallback: check if this file is the main entry point (not cli)
+    return (process.argv[1]?.endsWith('src/index.ts') ||
+           process.argv[1]?.endsWith('dist/index.js')) &&
+           !process.argv[1]?.endsWith('cli.js');
   } catch {
     // If all else fails, assume we're in STDIO mode if no HTTP context
     return !process.env.SMITHERY_HTTP_MODE;
@@ -495,8 +507,7 @@ const isMainModule = () => {
 };
 
 if (isMainModule()) {
-  const server = new CodeRideServer();
-  server.start().catch((error: Error) => {
+  startServer().catch((error: Error) => {
     logger.error('Server start error', error);
     process.exit(1);
   });
