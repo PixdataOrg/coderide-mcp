@@ -78,17 +78,26 @@ This plan aligns coderide-mcp's tool definitions with Anthropic's tool search to
 - [x] FR3-9: Enhance `next_task` description with "what + when"
   - **Done**: Commit 14b12ee
 
-### Phase 4: Input Schema Improvement - [complexity: M]
+### Phase 4: Input Schema Improvement - [complexity: M] ✅ COMPLETED
 
-- [ ] FR4-1: Add/improve property descriptions in `get_task` inputSchema
-- [ ] FR4-2: Add/improve property descriptions in `update_task` inputSchema
-- [ ] FR4-3: Add/improve property descriptions in `get_project` inputSchema
-- [ ] FR4-4: Add/improve property descriptions in `update_project` inputSchema
-- [ ] FR4-5: Add/improve property descriptions in `get_prompt` inputSchema
-- [ ] FR4-6: Add/improve property descriptions in `start_project` inputSchema
-- [ ] FR4-7: Add/improve property descriptions in `list_projects` inputSchema (empty schema - no changes needed)
-- [ ] FR4-8: Add/improve property descriptions in `list_tasks` inputSchema
-- [ ] FR4-9: Add/improve property descriptions in `next_task` inputSchema
+- [x] FR4-1: Add/improve property descriptions in `get_task` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-2: Add/improve property descriptions in `update_task` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-3: Add/improve property descriptions in `get_project` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-4: Add/improve property descriptions in `update_project` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-5: Add/improve property descriptions in `get_prompt` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-6: Add/improve property descriptions in `start_project` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-7: Add/improve property descriptions in `list_projects` inputSchema (empty schema - no changes needed)
+  - **Done**: No changes required - tool has no input parameters by design
+- [x] FR4-8: Add/improve property descriptions in `list_tasks` inputSchema
+  - **Done**: Commit 82c7c9b
+- [x] FR4-9: Add/improve property descriptions in `next_task` inputSchema
+  - **Done**: Commit 82c7c9b
 
 ### Phase 5: Add Metadata to All Tools - [complexity: M]
 
@@ -228,3 +237,15 @@ The spec suggests `domain_action_target` but current names like `get_task` alrea
 - All descriptions follow consistent pattern: concise "what" statement + practical "when" guidance
 - TypeScript compilation and build passing
 - No breaking changes - descriptions are backward compatible
+
+### Phase 4: Input Schema Improvement - Commit 82c7c9b
+- Enhanced property descriptions in all 9 MCP tools with detailed context
+- All property descriptions now include:
+  - Format specifications (e.g., 'ABC-123' pattern explanation)
+  - Constraint details (e.g., max character limits)
+  - Usage guidance (when and why to use each parameter)
+  - Relationship context (how properties relate to other tools)
+- Tools updated: get_task, update_task, get_project, update_project, get_prompt, start_project, list_tasks, next_task
+- list_projects: No changes needed (empty schema by design - no input parameters)
+- All changes are additive only - maintains backward compatibility
+- TypeScript compilation and build passing

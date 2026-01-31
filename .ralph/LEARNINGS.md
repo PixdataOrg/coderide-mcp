@@ -8,6 +8,8 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 - [2026-01-31] [tool-search-tool] Adding optional fields to interfaces is safe and backwards compatible - allows gradual adoption without breaking existing tools
 - [2026-01-31] [tool-search-tool] TypeScript's optional properties (`field?: Type`) are perfect for extending MCP tool definitions without forcing immediate updates to all tools
 - [2026-01-31] [tool-search-tool] Tool description pattern: "what it does" + "when to use it" makes tools more discoverable and helps users understand appropriate usage contexts
+- [2026-01-31] [tool-search-tool] Property descriptions should include: format specs, constraint details, usage guidance, and relationship context - makes tools self-documenting and easier to discover
+- [2026-01-31] [tool-search-tool] Use concrete examples in property descriptions (e.g., 'ABC-123' instead of just 'task number') - helps users understand expected format immediately
 
 ## Anti-Patterns (What to Avoid)
 
