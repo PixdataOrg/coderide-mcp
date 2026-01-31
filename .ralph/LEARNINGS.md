@@ -26,6 +26,7 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 
 <!-- Add mistakes and issues to avoid -->
 - [2026-01-31] [tool-search-tool] Spec verification process: Create dedicated test files for each acceptance criterion during implementation, not after - makes verification trivial and provides regression protection
+- [2026-01-31] [tool-search-tool] Mock server should mirror production tool definitions - when adding metadata/descriptions to production tools, update mock tools in src/index.ts for full feature parity (identified in code review)
 
 ### E2E Pitfalls
 <!-- E2E testing specific issues -->
