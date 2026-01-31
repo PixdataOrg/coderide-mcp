@@ -70,6 +70,12 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
     idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'update', 'status', 'description', 'write'],
+    usage: 'Use when you need to change task status (e.g., moving from to-do to in-progress), update progress notes, or modify task descriptions as work evolves',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -163,6 +169,7 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

@@ -36,6 +36,12 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'fetch', 'details', 'knowledge', 'read'],
+    usage: 'Use at the start of your workflow to establish project context, understand the codebase architecture, and access the knowledge graph and architecture diagrams before working on tasks',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -52,6 +58,7 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

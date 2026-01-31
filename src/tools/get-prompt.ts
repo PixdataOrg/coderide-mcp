@@ -35,6 +35,12 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'prompt', 'instructions', 'ai', 'read'],
+    usage: 'Use when you need detailed implementation guidance, acceptance criteria, or AI-specific instructions for completing a task after reviewing the basic task details',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -114,6 +120,7 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

@@ -35,6 +35,12 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'sequence', 'workflow', 'next', 'automation'],
+    usage: 'Use after completing a task to automatically find and transition to the next task in the project workflow, maintaining continuous progress',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -129,6 +135,7 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

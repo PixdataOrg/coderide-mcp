@@ -125,6 +125,12 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
     idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'update', 'knowledge', 'diagram', 'mermaid', 'write'],
+    usage: 'Use when you have completed tasks that affect the codebase architecture, discovered new patterns, or need to document implementation impacts in the project knowledge base',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -210,6 +216,7 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

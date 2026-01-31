@@ -31,6 +31,12 @@ export class ListProjectsTool extends BaseTool<typeof ListProjectsSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'list', 'workspace', 'discovery', 'read'],
+    usage: 'Use when you need to discover available projects, find a project slug, or get an overview of all projects you have access to',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -47,6 +53,7 @@ export class ListProjectsTool extends BaseTool<typeof ListProjectsSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {},

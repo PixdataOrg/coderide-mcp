@@ -36,6 +36,12 @@ export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'list', 'project', 'status', 'read'],
+    usage: 'Use when you need to see the full project backlog, identify tasks by status (to-do, in-progress, done), or plan your work sequence',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -52,6 +58,7 @@ export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

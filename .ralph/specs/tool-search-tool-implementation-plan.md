@@ -99,53 +99,62 @@ This plan aligns coderide-mcp's tool definitions with Anthropic's tool search to
 - [x] FR4-9: Add/improve property descriptions in `next_task` inputSchema
   - **Done**: Commit 82c7c9b
 
-### Phase 5: Add Metadata to All Tools - [complexity: M]
+### Phase 5: Add Metadata to All Tools - [complexity: M] ✅ COMPLETED
 
-- [ ] FR5-1: Add metadata to `get_task`
+- [x] FR5-1: Add metadata to `get_task`
   - category: `task`
   - tags: `['task', 'fetch', 'details', 'read']`
   - usage: description of when to use
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-2: Add metadata to `update_task`
+- [x] FR5-2: Add metadata to `update_task`
   - category: `task`
   - tags: `['task', 'update', 'status', 'description', 'write']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-3: Add metadata to `get_project`
+- [x] FR5-3: Add metadata to `get_project`
   - category: `project`
   - tags: `['project', 'fetch', 'details', 'knowledge', 'read']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-4: Add metadata to `update_project`
+- [x] FR5-4: Add metadata to `update_project`
   - category: `project`
   - tags: `['project', 'update', 'knowledge', 'diagram', 'mermaid', 'write']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-5: Add metadata to `get_prompt`
+- [x] FR5-5: Add metadata to `get_prompt`
   - category: `task`
   - tags: `['task', 'prompt', 'instructions', 'ai', 'read']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-6: Add metadata to `start_project`
+- [x] FR5-6: Add metadata to `start_project`
   - category: `project`
   - tags: `['project', 'start', 'initialize', 'first-task', 'workflow']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-7: Add metadata to `list_projects`
+- [x] FR5-7: Add metadata to `list_projects`
   - category: `project`
   - tags: `['project', 'list', 'workspace', 'discovery', 'read']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-8: Add metadata to `list_tasks`
+- [x] FR5-8: Add metadata to `list_tasks`
   - category: `task`
   - tags: `['task', 'list', 'project', 'status', 'read']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
-- [ ] FR5-9: Add metadata to `next_task`
+- [x] FR5-9: Add metadata to `next_task`
   - category: `task`
   - tags: `['task', 'sequence', 'workflow', 'next', 'automation']`
   - priority: `primary`
+  - **Done**: Included in Phase 5 commit
 
 ### Phase 6: Documentation - [complexity: M]
 
@@ -249,3 +258,17 @@ The spec suggests `domain_action_target` but current names like `get_task` alrea
 - list_projects: No changes needed (empty schema by design - no input parameters)
 - All changes are additive only - maintains backward compatibility
 - TypeScript compilation and build passing
+
+### Phase 5: Add Metadata to All Tools - Commit [PENDING]
+- Added `metadata` property to all 9 MCP tools with complete categorization and tags
+- Each tool now includes:
+  - category: 'task' or 'project' based on tool domain
+  - tags: Relevant searchable keywords (4-6 tags per tool)
+  - usage: Practical guidance on when to use the tool
+  - priority: 'primary' for all current tools (all are user-facing)
+- Tools updated: get_task, update_task, get_project, update_project, get_prompt, start_project, list_projects, list_tasks, next_task
+- Updated all getMCPToolDefinition() methods to include metadata in returned objects
+- All metadata follows the MCPToolMetadata interface defined in Phase 1
+- All changes are additive only - maintains backward compatibility
+- TypeScript compilation and build passing
+- FR5-1 through FR5-9: All completed

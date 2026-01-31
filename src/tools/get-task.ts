@@ -37,6 +37,12 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'fetch', 'details', 'read'],
+    usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work on a task',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -118,6 +124,7 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {

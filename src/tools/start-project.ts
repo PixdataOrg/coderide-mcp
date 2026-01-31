@@ -39,6 +39,12 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
   };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'start', 'initialize', 'first-task', 'workflow'],
+    usage: 'Use when beginning work on a new project to get both the project context and the initial task in a single call, streamlining the workflow startup',
+    priority: 'primary' as const
+  };
 
   /**
    * Constructor with dependency injection
@@ -55,6 +61,7 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
