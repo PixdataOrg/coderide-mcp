@@ -28,7 +28,7 @@ type GetPromptInput = z.infer<typeof GetPromptSchema>;
  */
 export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
   readonly name = 'get_prompt';
-  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CRD-1'). This is typically used to understand the detailed requirements or context for an AI agent to work on the task.";
+  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CRD-1'). Use this when you need detailed implementation guidance, acceptance criteria, or AI-specific instructions for completing a task after reviewing the basic task details.";
   readonly zodSchema = GetPromptSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Task Prompt",

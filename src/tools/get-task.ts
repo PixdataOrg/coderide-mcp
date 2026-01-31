@@ -30,7 +30,7 @@ type GetTaskInput = z.infer<typeof GetTaskSchema>;
  */
 export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   readonly name = 'get_task';
-  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1').";
+  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1'). Use this when you need to understand task requirements, check current status, or gather context before starting work on a task.";
   readonly zodSchema = GetTaskSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Task",

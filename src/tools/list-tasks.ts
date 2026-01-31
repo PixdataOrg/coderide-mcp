@@ -29,7 +29,7 @@ type ListTasksInput = z.infer<typeof ListTasksSchema>;
  */
 export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
   readonly name = 'list_tasks';
-  readonly description = "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status.";
+  readonly description = "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status. Use this when you need to see the full project backlog, identify tasks by status (to-do, in-progress, done), or plan your work sequence.";
   readonly zodSchema = ListTasksSchema;
   readonly annotations: ToolAnnotations = {
     title: "List Tasks",

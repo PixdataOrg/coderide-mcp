@@ -28,7 +28,7 @@ type NextTaskInput = z.infer<typeof NextTaskSchema>;
  */
 export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
   readonly name = 'next_task';
-  readonly description = "Retrieves the next task in sequence based on the current task number (e.g., CDB-23 → CDB-24). This is useful for finding the next task that needs to be done in a project workflow.";
+  readonly description = "Retrieves the next task in sequence based on the current task number (e.g., CDB-23 → CDB-24). Use this after completing a task to automatically find and transition to the next task in the project workflow, maintaining continuous progress.";
   readonly zodSchema = NextTaskSchema;
   readonly annotations: ToolAnnotations = {
     title: "Next Task",

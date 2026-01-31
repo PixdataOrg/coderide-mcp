@@ -29,7 +29,7 @@ type GetProjectInput = z.infer<typeof GetProjectSchema>;
  */
 export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
   readonly name = 'get_project';
-  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CRD').";
+  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CRD'). Use this at the start of your workflow to establish project context, understand the codebase architecture, and access the knowledge graph and architecture diagrams before working on tasks.";
   readonly zodSchema = GetProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Project",

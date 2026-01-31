@@ -61,7 +61,7 @@ type UpdateTaskInput = z.infer<typeof UpdateTaskSchema>;
  */
 export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
   readonly name = 'update_task';
-  readonly description = "Updates an existing task's 'description' and/or 'status'. The task is identified by its unique 'number' (e.g., 'CRD-1'). At least one of 'description' or 'status' must be provided for an update.";
+  readonly description = "Updates an existing task's 'description' and/or 'status'. The task is identified by its unique 'number' (e.g., 'CRD-1'). At least one of 'description' or 'status' must be provided for an update. Use this when you need to change task status (e.g., moving from 'to-do' to 'in-progress'), update progress notes, or modify task descriptions as work evolves.";
   readonly zodSchema = UpdateTaskSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Update Task",

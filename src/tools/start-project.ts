@@ -32,7 +32,7 @@ type StartProjectInput = z.infer<typeof StartProjectSchema>;
  */
 export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
   readonly name = 'start_project';
-  readonly description = "Retrieves the project details and the prompt for the very first task of a specified project using the project's unique slug (e.g., 'CRD'). This is useful for initiating work on a new project or understanding its starting point.";
+  readonly description = "Retrieves the project details and the prompt for the very first task of a specified project using the project's unique slug (e.g., 'CRD'). Use this when beginning work on a new project to get both the project context and the initial task in a single call, streamlining the workflow startup.";
   readonly zodSchema = StartProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Start Project",

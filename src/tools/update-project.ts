@@ -116,7 +116,7 @@ type UpdateProjectInput = z.infer<typeof UpdateProjectSchema>;
  */
 export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
   readonly name = 'update_project';
-  readonly description = "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). The project is identified by its unique 'slug'. At least one of 'project_knowledge' or 'project_diagram' must be provided for an update to occur.";
+  readonly description = "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). The project is identified by its unique 'slug'. At least one of 'project_knowledge' or 'project_diagram' must be provided for an update to occur. Use this when you've completed tasks that affect the codebase architecture, discovered new patterns, or need to document implementation impacts in the project's knowledge base.";
   readonly zodSchema = UpdateProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Update Project",

@@ -24,7 +24,7 @@ type ListProjectsInput = z.infer<typeof ListProjectsSchema>;
  */
 export class ListProjectsTool extends BaseTool<typeof ListProjectsSchema> {
   readonly name = 'list_projects';
-  readonly description = "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication.";
+  readonly description = "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication. Use this when you need to discover available projects, find a project slug, or get an overview of all projects you have access to.";
   readonly zodSchema = ListProjectsSchema;
   readonly annotations: ToolAnnotations = {
     title: "List Projects",
