@@ -135,7 +135,7 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The current task number to find the next task for (e.g., 'CDB-23' or 'cdb-23'). Case insensitive - will be converted to uppercase."
+            description: "The current task number in format 'ABC-123' to find the next sequential task (e.g., 'CDB-23' returns 'CDB-24', 'CRD-5' returns 'CRD-6'). Use this after completing a task to automatically continue with the next task in the project sequence. Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["number"],

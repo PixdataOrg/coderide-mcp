@@ -58,7 +58,7 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CRD' for CodeRide, 'CDB' for a database project). This slug serves as the project prefix for all task numbers (e.g., CRD-1, CRD-2). Case insensitive - will be converted to uppercase internally. This is the same prefix seen in task numbers."
           }
         },
         required: ["slug"],

@@ -216,16 +216,15 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project to be updated (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CRD' for CodeRide). This is the same prefix used in task numbers. Case insensitive - will be converted to uppercase internally."
           },
           project_knowledge: {
             type: "object",
-            // No specific properties for project_knowledge, as it's z.record(z.any())
-            description: "Optional. A JSON object representing the project's knowledge graph. If provided, this will update the existing knowledge data. (max 50 components, 20 technologies, 5000 chars for notes)"
+            description: "Optional. A structured JSON object representing the project's knowledge graph containing components, dependencies, technologies, architecture patterns, and notes. Structure: { components: [], dependencies: [], technologies: [], architecture: string, patterns: [], notes: string, links: [], metadata: {} }. Limits: max 50 components, 30 technologies, 30 patterns, 10000 chars for notes. Use this to document architectural decisions, implementation impacts, and project learnings after completing tasks."
           },
           project_diagram: {
             type: "string",
-            description: "Optional. A string containing the project's structure diagram in Mermaid.js format. If provided, this will update the existing diagram. (max 15000 characters)"
+            description: "Optional. A Mermaid.js format diagram representing the project's architecture, component relationships, and data flow (e.g., 'graph TD; A-->B; B-->C'). Maximum 15000 characters. Use this to visualize system structure, component dependencies, or architectural changes made during task implementation. Update this whenever you add new components or modify relationships."
           }
         },
         required: ["slug"], // Zod .refine() handles the "at least one update field" logic at runtime.

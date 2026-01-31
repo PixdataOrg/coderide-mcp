@@ -58,7 +58,7 @@ export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project (e.g., 'CDB' or 'cdb'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CDB' for a database project, 'CRD' for CodeRide). Returns all tasks organized by status columns (to-do, in-progress, done) with their sequence numbers and metadata. Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["slug"],

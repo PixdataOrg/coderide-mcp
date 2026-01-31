@@ -61,7 +61,7 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CRD' for CodeRide). This will retrieve both the project details and the first task's prompt in a single call, streamlining project initialization. Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["slug"],

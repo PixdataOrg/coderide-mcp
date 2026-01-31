@@ -120,7 +120,7 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The unique identifier for the task (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
+            description: "The unique task number identifier in format 'ABC-123' where ABC is the three-letter project code and 123 is the task sequence number (e.g., 'CRD-1', 'CDB-42'). Case insensitive - will be converted to uppercase internally. Use this to retrieve detailed AI-specific implementation instructions for the task."
           }
         },
         required: ["number"],

@@ -124,7 +124,7 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The unique task number identifier (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
+            description: "The unique task number identifier in format 'ABC-123' where ABC is the three-letter project code and 123 is the task sequence number (e.g., 'CRD-1', 'CDB-42'). Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["number"],

@@ -169,16 +169,16 @@ export class UpdateTaskTool extends BaseTool<typeof UpdateTaskSchema> {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The unique identifier for the task to be updated (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
+            description: "The unique task number identifier in format 'ABC-123' where ABC is the three-letter project code and 123 is the task sequence number (e.g., 'CRD-1', 'CDB-42'). Case insensitive - will be converted to uppercase internally."
           },
           description: {
             type: "string",
-            description: "Optional. The new description for the task. If provided, it will replace the existing task description. (max 2000 characters)"
+            description: "Optional. The new description for the task. If provided, it will completely replace the existing task description. Maximum 2000 characters. Use this to add implementation notes, progress updates, or clarify requirements as work progresses."
           },
           status: {
             type: "string",
             enum: ["to-do", "in-progress", "done"],
-            description: "Optional. The new status for the task. Must be one of: 'to-do', 'in-progress', 'done'. If provided, it will update the task's current status."
+            description: "Optional. The new status for the task. Valid values: 'to-do' (not started), 'in-progress' (actively working), 'done' (completed). Use this to track task progress through the workflow. When marking a task 'done', ensure you update project knowledge and diagram if architectural changes were made."
           }
         },
         required: ["number"], // Zod .refine() handles the "at least one update field" logic at runtime.
