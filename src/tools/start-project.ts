@@ -32,12 +32,18 @@ type StartProjectInput = z.infer<typeof StartProjectSchema>;
  */
 export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
   readonly name = 'start_project';
-  readonly description = "Retrieves the project details and the prompt for the very first task of a specified project using the project's unique slug (e.g., 'CRD'). This is useful for initiating work on a new project or understanding its starting point.";
+  readonly description = "Retrieves the project details and the prompt for the very first task of a specified project using the project's unique slug (e.g., 'CRD'). Use this when beginning work on a new project to get both the project context and the initial task in a single call, streamlining the workflow startup.";
   readonly zodSchema = StartProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Start Project",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'start', 'initialize', 'first-task', 'workflow'],
+    usage: 'Use when beginning work on a new project to get both the project context and the initial task in a single call, streamlining the workflow startup',
+    priority: 'primary' as const
   };
 
   /**
@@ -55,13 +61,14 @@ export class StartProjectTool extends BaseTool<typeof StartProjectSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CRD' for CodeRide). This will retrieve both the project details and the first task's prompt in a single call, streamlining project initialization. Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["slug"],

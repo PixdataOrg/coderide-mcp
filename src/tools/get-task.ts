@@ -30,12 +30,18 @@ type GetTaskInput = z.infer<typeof GetTaskSchema>;
  */
 export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   readonly name = 'get_task';
-  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1').";
+  readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1'). Use this when you need to understand task requirements, check current status, or gather context before starting work on a task.";
   readonly zodSchema = GetTaskSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Task",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'fetch', 'details', 'read'],
+    usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work on a task',
+    priority: 'primary' as const
   };
 
   /**
@@ -118,13 +124,14 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The unique task number identifier (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
+            description: "The unique task number identifier in format 'ABC-123' where ABC is the three-letter project code and 123 is the task sequence number (e.g., 'CRD-1', 'CDB-42'). Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["number"],

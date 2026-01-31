@@ -116,7 +116,7 @@ type UpdateProjectInput = z.infer<typeof UpdateProjectSchema>;
  */
 export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
   readonly name = 'update_project';
-  readonly description = "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). The project is identified by its unique 'slug'. At least one of 'project_knowledge' or 'project_diagram' must be provided for an update to occur.";
+  readonly description = "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). The project is identified by its unique 'slug'. At least one of 'project_knowledge' or 'project_diagram' must be provided for an update to occur. Use this when you've completed tasks that affect the codebase architecture, discovered new patterns, or need to document implementation impacts in the project's knowledge base.";
   readonly zodSchema = UpdateProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Update Project",
@@ -124,6 +124,12 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
     destructiveHint: false, // Assuming updates are not inherently destructive but additive or modifying
     idempotentHint: false, // Multiple identical updates might have different outcomes if not designed for idempotency
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'update', 'knowledge', 'diagram', 'mermaid', 'write'],
+    usage: 'Use when you have completed tasks that affect the codebase architecture, discovered new patterns, or need to document implementation impacts in the project knowledge base',
+    priority: 'primary' as const
   };
 
   /**
@@ -210,22 +216,22 @@ export class UpdateProjectTool extends BaseTool<typeof UpdateProjectSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project to be updated (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CRD' for CodeRide). This is the same prefix used in task numbers. Case insensitive - will be converted to uppercase internally."
           },
           project_knowledge: {
             type: "object",
-            // No specific properties for project_knowledge, as it's z.record(z.any())
-            description: "Optional. A JSON object representing the project's knowledge graph. If provided, this will update the existing knowledge data. (max 50 components, 20 technologies, 5000 chars for notes)"
+            description: "Optional. A structured JSON object representing the project's knowledge graph containing components, dependencies, technologies, architecture patterns, and notes. Structure: { components: [], dependencies: [], technologies: [], architecture: string, patterns: [], notes: string, links: [], metadata: {} }. Limits: max 50 components, 30 technologies, 30 patterns, 10000 chars for notes. Use this to document architectural decisions, implementation impacts, and project learnings after completing tasks."
           },
           project_diagram: {
             type: "string",
-            description: "Optional. A string containing the project's structure diagram in Mermaid.js format. If provided, this will update the existing diagram. (max 15000 characters)"
+            description: "Optional. A Mermaid.js format diagram representing the project's architecture, component relationships, and data flow (e.g., 'graph TD; A-->B; B-->C'). Maximum 15000 characters. Use this to visualize system structure, component dependencies, or architectural changes made during task implementation. Update this whenever you add new components or modify relationships."
           }
         },
         required: ["slug"], // Zod .refine() handles the "at least one update field" logic at runtime.

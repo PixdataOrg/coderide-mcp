@@ -268,6 +268,18 @@ Retrieves the next task in sequence for workflow automation, perfect for continu
 *   **AI Action:** Calls `next_task` with `arguments: { "number": "CRD-1" }`.
 *   **Outcome:** AI receives details for CRD-2, enabling seamless workflow continuation with prerequisite validation and contextual guidance.
 
+## 👩‍💻 For Contributors & Developers
+
+Want to add new tools or modify existing ones? Check out our comprehensive [Tool Development Guide](docs/tools.md) which covers:
+
+- **Naming conventions** for consistent tool design
+- **Description guidelines** (what + when pattern)
+- **Input schema best practices** with detailed property descriptions
+- **Metadata structure** for enhanced tool discoverability
+- **Complete examples** to get you started quickly
+
+The guide ensures all tools follow Anthropic's tool search best practices while maintaining backwards compatibility.
+
 ## 💡 Technical Highlights
 
 *   **🧠 AI-Native Workflow Optimization:** Advanced agent instruction system with MCP 2025 structured tool output and intelligent workflow orchestration for enhanced AI productivity.

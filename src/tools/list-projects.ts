@@ -24,12 +24,18 @@ type ListProjectsInput = z.infer<typeof ListProjectsSchema>;
  */
 export class ListProjectsTool extends BaseTool<typeof ListProjectsSchema> {
   readonly name = 'list_projects';
-  readonly description = "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication.";
+  readonly description = "Lists all projects in the user workspace. No input parameters required as the workspace is automatically determined from the API key authentication. Use this when you need to discover available projects, find a project slug, or get an overview of all projects you have access to.";
   readonly zodSchema = ListProjectsSchema;
   readonly annotations: ToolAnnotations = {
     title: "List Projects",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'list', 'workspace', 'discovery', 'read'],
+    usage: 'Use when you need to discover available projects, find a project slug, or get an overview of all projects you have access to',
+    priority: 'primary' as const
   };
 
   /**
@@ -47,6 +53,7 @@ export class ListProjectsTool extends BaseTool<typeof ListProjectsSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {},

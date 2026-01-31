@@ -23,6 +23,35 @@ export interface ToolAnnotations {
 }
 
 /**
+ * Tool metadata for enhanced discoverability and tool search alignment.
+ * All fields are optional to maintain backwards compatibility.
+ */
+export interface MCPToolMetadata {
+  /**
+   * High-level functional area of the tool.
+   * Primarily for organization and documentation.
+   */
+  category?: 'project' | 'task' | 'code-edit' | 'testing' | 'navigation' | 'repo' | 'ai-assist' | string;
+
+  /**
+   * Free-form tags to aid indexing and search.
+   * Example: ["typescript", "jest", "refactor"].
+   */
+  tags?: string[];
+
+  /**
+   * Short guidance on when to use this tool.
+   * Example: "Use when you need to generate unit tests for an existing file."
+   */
+  usage?: string;
+
+  /**
+   * Rough importance/visibility hint for UIs and docs.
+   */
+  priority?: 'primary' | 'advanced' | 'internal';
+}
+
+/**
  * Agent workflow phases for structured guidance
  */
 export type WorkflowPhase = 'discovery' | 'context' | 'analysis' | 'implementation' | 'completion';
@@ -77,6 +106,7 @@ export interface MCPToolDefinition {
   description: string;
   inputSchema: Record<string, any>; // JSON Schema representation
   annotations?: ToolAnnotations;
+  metadata?: MCPToolMetadata;
 }
 
 /**
@@ -102,6 +132,12 @@ export abstract class BaseTool<T extends z.ZodType> {
    * Tool annotations providing hints about its behavior.
    */
   abstract readonly annotations: ToolAnnotations;
+
+  /**
+   * Optional metadata for enhanced discoverability and tool search alignment.
+   * Subclasses can override this to provide categorization, tags, and usage guidance.
+   */
+  readonly metadata?: MCPToolMetadata;
 
   /**
    * Optional API client for tools that need API access

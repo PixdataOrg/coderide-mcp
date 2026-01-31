@@ -29,12 +29,18 @@ type ListTasksInput = z.infer<typeof ListTasksSchema>;
  */
 export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
   readonly name = 'list_tasks';
-  readonly description = "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status.";
+  readonly description = "Lists all tasks within a project using the project slug (e.g., 'CDB'). Returns tasks organized by status columns with their order and current status. Use this when you need to see the full project backlog, identify tasks by status (to-do, in-progress, done), or plan your work sequence.";
   readonly zodSchema = ListTasksSchema;
   readonly annotations: ToolAnnotations = {
     title: "List Tasks",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'list', 'project', 'status', 'read'],
+    usage: 'Use when you need to see the full project backlog, identify tasks by status (to-do, in-progress, done), or plan your work sequence',
+    priority: 'primary' as const
   };
 
   /**
@@ -52,13 +58,14 @@ export class ListTasksTool extends BaseTool<typeof ListTasksSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project (e.g., 'CDB' or 'cdb'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CDB' for a database project, 'CRD' for CodeRide). Returns all tasks organized by status columns (to-do, in-progress, done) with their sequence numbers and metadata. Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["slug"],

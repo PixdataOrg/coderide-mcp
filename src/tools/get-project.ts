@@ -29,12 +29,18 @@ type GetProjectInput = z.infer<typeof GetProjectSchema>;
  */
 export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
   readonly name = 'get_project';
-  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CRD').";
+  readonly description = "Retrieves detailed information about a specific project using its unique 'slug' (three uppercase letters, e.g., 'CRD'). Use this at the start of your workflow to establish project context, understand the codebase architecture, and access the knowledge graph and architecture diagrams before working on tasks.";
   readonly zodSchema = GetProjectSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Project",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'project' as const,
+    tags: ['project', 'fetch', 'details', 'knowledge', 'read'],
+    usage: 'Use at the start of your workflow to establish project context, understand the codebase architecture, and access the knowledge graph and architecture diagrams before working on tasks',
+    priority: 'primary' as const
   };
 
   /**
@@ -52,13 +58,14 @@ export class GetProjectTool extends BaseTool<typeof GetProjectSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           slug: {
             type: "string",
             pattern: "^[A-Za-z]{3}$",
-            description: "The unique three-letter identifier for the project (e.g., 'CRD' or 'crd'). Case insensitive - will be converted to uppercase."
+            description: "The unique three-letter project identifier/code (e.g., 'CRD' for CodeRide, 'CDB' for a database project). This slug serves as the project prefix for all task numbers (e.g., CRD-1, CRD-2). Case insensitive - will be converted to uppercase internally. This is the same prefix seen in task numbers."
           }
         },
         required: ["slug"],

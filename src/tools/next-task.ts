@@ -28,12 +28,18 @@ type NextTaskInput = z.infer<typeof NextTaskSchema>;
  */
 export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
   readonly name = 'next_task';
-  readonly description = "Retrieves the next task in sequence based on the current task number (e.g., CDB-23 → CDB-24). This is useful for finding the next task that needs to be done in a project workflow.";
+  readonly description = "Retrieves the next task in sequence based on the current task number (e.g., CDB-23 → CDB-24). Use this after completing a task to automatically find and transition to the next task in the project workflow, maintaining continuous progress.";
   readonly zodSchema = NextTaskSchema;
   readonly annotations: ToolAnnotations = {
     title: "Next Task",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'sequence', 'workflow', 'next', 'automation'],
+    usage: 'Use after completing a task to automatically find and transition to the next task in the project workflow, maintaining continuous progress',
+    priority: 'primary' as const
   };
 
   /**
@@ -129,13 +135,14 @@ export class NextTaskTool extends BaseTool<typeof NextTaskSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The current task number to find the next task for (e.g., 'CDB-23' or 'cdb-23'). Case insensitive - will be converted to uppercase."
+            description: "The current task number in format 'ABC-123' to find the next sequential task (e.g., 'CDB-23' returns 'CDB-24', 'CRD-5' returns 'CRD-6'). Use this after completing a task to automatically continue with the next task in the project sequence. Case insensitive - will be converted to uppercase internally."
           }
         },
         required: ["number"],

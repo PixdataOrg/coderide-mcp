@@ -28,12 +28,18 @@ type GetPromptInput = z.infer<typeof GetPromptSchema>;
  */
 export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
   readonly name = 'get_prompt';
-  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CRD-1'). This is typically used to understand the detailed requirements or context for an AI agent to work on the task.";
+  readonly description = "Retrieves the specific instructions or prompt for a given task, identified by its unique task number (e.g., 'CRD-1'). Use this when you need detailed implementation guidance, acceptance criteria, or AI-specific instructions for completing a task after reviewing the basic task details.";
   readonly zodSchema = GetPromptSchema; // Renamed from schema
   readonly annotations: ToolAnnotations = {
     title: "Get Task Prompt",
     readOnlyHint: true,
     openWorldHint: true, // Interacts with an external API
+  };
+  readonly metadata = {
+    category: 'task' as const,
+    tags: ['task', 'prompt', 'instructions', 'ai', 'read'],
+    usage: 'Use when you need detailed implementation guidance, acceptance criteria, or AI-specific instructions for completing a task after reviewing the basic task details',
+    priority: 'primary' as const
   };
 
   /**
@@ -114,13 +120,14 @@ export class GetPromptTool extends BaseTool<typeof GetPromptSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
           number: {
             type: "string",
             pattern: "^[A-Za-z]{3}-\\d+$",
-            description: "The unique identifier for the task (e.g., 'CRD-1' or 'crd-1'). Case insensitive - will be converted to uppercase."
+            description: "The unique task number identifier in format 'ABC-123' where ABC is the three-letter project code and 123 is the task sequence number (e.g., 'CRD-1', 'CDB-42'). Case insensitive - will be converted to uppercase internally. Use this to retrieve detailed AI-specific implementation instructions for the task."
           }
         },
         required: ["number"],
