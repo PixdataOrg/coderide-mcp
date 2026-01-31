@@ -1,194 +1,202 @@
-# Tool Development Guide
+# Tool Contribution Guide
 
-This guide explains how to create, modify, and maintain MCP tools in coderide-mcp following our tool search alignment standards.
+This guide explains how to create and maintain MCP tools in the CodeRide MCP server, following best practices for tool search alignment and discoverability.
 
-## Overview
+## Table of Contents
 
-All tools in coderide-mcp are designed to be discoverable and well-documented, following Anthropic's tool search best practices. Each tool extends `BaseTool` and includes:
+- [Tool Definition Overview](#tool-definition-overview)
+- [Naming Convention](#naming-convention)
+- [Tool Description Guidelines](#tool-description-guidelines)
+- [Input Schema Best Practices](#input-schema-best-practices)
+- [Metadata Fields](#metadata-fields)
+- [Complete Example](#complete-example)
+- [Recommended Category Values](#recommended-category-values)
+- [Testing Your Tool](#testing-your-tool)
 
-- Clear, descriptive naming
-- Rich descriptions explaining what and when
-- Detailed input schema with property descriptions
-- Optional metadata for enhanced discoverability
+## Tool Definition Overview
 
-## Tool Naming Convention
+All tools in the CodeRide MCP server extend the `BaseTool` abstract class and follow a consistent structure designed for optimal discoverability by AI assistants and tool search systems.
 
-**Pattern:** `action_target`
+### Required Components
 
-Tools follow a consistent naming pattern that prioritizes clarity and natural language order:
+Every tool must implement:
 
-- `get_task` - Retrieves a task
-- `update_project` - Updates a project
-- `list_tasks` - Lists tasks
-- `next_task` - Gets the next task
+1. **`name`**: Unique tool identifier following naming convention
+2. **`description`**: Clear explanation of what the tool does and when to use it
+3. **`zodSchema`**: Zod schema for runtime input validation
+4. **`metadata`**: Optional categorization and search metadata (recommended)
+5. **`execute()`**: Tool execution logic
+6. **`getMCPToolDefinition()`**: MCP-compliant tool definition
+
+## Naming Convention
+
+Tool names follow the **`action_target`** pattern for clarity and natural language consistency.
+
+### Pattern
+
+```
+{action}_{target}[_{qualifier}]
+```
+
+### Examples
+
+- `get_task` - Fetch a specific task
+- `update_task` - Modify task properties
+- `list_projects` - List all projects
+- `next_task` - Get next sequential task
 
 ### Guidelines
 
-- **Use verbs that clearly describe the action:** `get`, `update`, `list`, `start`, `next`
-- **Use singular or plural target names as appropriate:** `task` (singular), `tasks` (plural for lists)
-- **Keep names concise but clear:** Avoid abbreviations unless widely understood
-- **Avoid overly generic names:** Instead of `run` or `execute`, use specific verbs like `start_project`
+✅ **DO:**
+- Use descriptive action verbs: `get`, `update`, `list`, `create`, `delete`
+- Use clear target nouns: `task`, `project`, `prompt`
+- Keep names concise but unambiguous
+- Use lowercase with underscores (snake_case)
 
-### Examples
-
-✅ **Good:**
-- `get_project` - Clear action and target
-- `update_task` - Descriptive and unambiguous
-- `list_projects` - Plural indicates a list operation
-
-❌ **Avoid:**
-- `run` - Too generic
-- `doTask` - Unclear action
-- `gt` - Abbreviation not self-explanatory
+❌ **DON'T:**
+- Use generic one-word names: `run`, `execute`, `tool1`
+- Use abbreviations without clear meaning: `gtp`, `upd`
+- Include the domain in the name: `task_get_task` (use `metadata.category` instead)
 
 ## Tool Description Guidelines
 
-**Format:** "What it does" + "When to use it"
+Descriptions should follow the **"what + when"** pattern to maximize discoverability and usability.
 
-Each tool description should:
-
-1. **First sentence:** Concretely explain what the tool does
-2. **Second sentence:** Describe when to use it (typical scenarios)
-
-### Examples
+### Format
 
 ```typescript
-// Good: Clear what + when
-description: "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1'). Use this when you need to understand task requirements, check current status, or gather context before starting work on a task."
+description: "{What the tool does}. Use this when {when to use it / typical scenarios}."
+```
 
-// Good: Explains both aspects
-description: "Updates a project's knowledge graph data and/or its structure diagram (in Mermaid.js format). Use this when you've completed tasks that affect the codebase architecture, discovered new patterns, or need to document implementation impacts."
+### Example
+
+```typescript
+description: "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1'). Use this when you need to understand task requirements, check current status, or gather context before starting work on a task."
 ```
 
 ### Guidelines
 
-- **Be specific, not generic:** Avoid "Performs operations on code"
-- **Include concrete examples:** Show format examples like `'CRD-1'` or `'ABC-123'`
-- **Don't repeat argument details:** Those belong in the input schema
-- **Focus on user scenarios:** Help users understand when this tool applies
+✅ **DO:**
+- Start with a concrete statement of what the tool does
+- Add a second sentence explaining when/why to use it
+- Use specific examples where helpful (e.g., `'CRD-1'`)
+- Focus on user value and typical workflows
 
-## Input Schema Requirements
+❌ **DON'T:**
+- Repeat argument details (those belong in `inputSchema` descriptions)
+- Use overly generic text like "Performs operations on code"
+- Write excessively long descriptions (aim for 1-2 sentences)
+
+## Input Schema Best Practices
+
+Input schemas should be self-documenting with clear property names and detailed descriptions.
 
 ### Property Naming
 
-Use descriptive, self-explanatory property names:
+Use descriptive, semantic property names:
 
-✅ **Good:**
-- `file_path` - Clear and specific
-- `task_number` - Descriptive
-- `search_query` - Unambiguous
-
-❌ **Avoid:**
-- `f` - Too short
-- `str` - Generic type name
-- `arg1` - Meaningless
+✅ **Good:** `file_path`, `task_number`, `language`, `test_framework`
+❌ **Bad:** `f`, `str`, `arg1`, `x`
 
 ### Property Descriptions
 
-Every property should have a description that includes:
-
-1. **Format specification:** How the value should be formatted
-2. **Constraints:** Max length, allowed values, patterns
-3. **Usage guidance:** When and why to use this parameter
-4. **Examples:** Concrete examples showing the expected format
+Each property should include:
+- **Format specifications** (e.g., 'ABC-123' pattern)
+- **Constraint details** (e.g., max character limits)
+- **Usage guidance** (when and why to use)
+- **Relationship context** (how it relates to other tools/properties)
 
 ### Example
 
 ```typescript
 inputSchema: {
-  type: 'object',
+  type: "object",
   properties: {
     number: {
-      type: 'string',
-      pattern: '^[A-Za-z]{3}-\\d+$',
+      type: "string",
+      pattern: "^[A-Za-z]{3}-\\d+$",
       description: "The unique task number identifier in format 'ABC-123' where ABC is the three-letter project code and 123 is the task sequence number (e.g., 'CRD-1', 'CDB-42'). Case insensitive - will be converted to uppercase internally."
     },
     status: {
-      type: 'string',
-      enum: ['to-do', 'in-progress', 'completed'],
-      description: "The task status. Must be one of: 'to-do' (task not started), 'in-progress' (currently being worked on), or 'completed' (task finished). Use 'in-progress' when starting work and 'completed' when done."
+      type: "string",
+      enum: ["to-do", "in-progress", "done"],
+      description: "The desired status for the task. Use 'to-do' for tasks that haven't started, 'in-progress' for active work, and 'done' when completed. Updating to 'in-progress' signals active work to other team members."
     }
   },
-  required: ['number']
+  required: ["number"],
+  additionalProperties: false
 }
 ```
 
 ## Metadata Fields
 
-Metadata enhances tool discoverability and is **optional but recommended** for all tools.
+The optional `metadata` field enhances tool discoverability without changing MCP protocol compatibility.
 
-### Structure
+### `MCPToolMetadata` Interface
 
 ```typescript
-readonly metadata = {
-  category: 'task' as const,
-  tags: ['task', 'fetch', 'details', 'read'],
-  usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work',
-  priority: 'primary' as const
-};
+interface MCPToolMetadata {
+  /**
+   * High-level functional area of the tool.
+   * Primarily for organization and documentation.
+   */
+  category?: 'task' | 'project' | string;
+
+  /**
+   * Free-form tags to aid indexing and search.
+   * Example: ["typescript", "jest", "refactor"]
+   */
+  tags?: string[];
+
+  /**
+   * Short guidance on when to use this tool.
+   * Example: "Use when you need to generate unit tests for an existing file."
+   */
+  usage?: string;
+
+  /**
+   * Rough importance/visibility hint for UIs and docs.
+   */
+  priority?: 'primary' | 'advanced' | 'internal';
+}
 ```
 
-### Field Reference
+### Field Guidelines
 
-#### `category` (optional)
+#### `category`
+Broad functional domain of the tool. Use for grouping related tools.
 
-High-level functional area of the tool. Use one of these recommended values:
+**CodeRide MCP Categories:**
+- `'task'` - Task-level operations (get_task, update_task, list_tasks)
+- `'project'` - Project-level operations (get_project, update_project, list_projects)
 
-- **`project`** - Project-level operations (get_project, update_project, start_project, list_projects)
-- **`task`** - Task-level operations (get_task, update_task, list_tasks, next_task)
+#### `tags`
+Searchable keywords for tool discovery (4-6 tags recommended).
 
-For coderide-mcp, these are the two main categories. Other projects might use:
-- `code-edit` - Code editing, refactoring, formatting
-- `testing` - Test execution, generation
-- `navigation` - File tree, code search
-- `repo` - Git operations, branches
-- `ai-assist` - AI-assisted operations
+**Good tags:**
+- Action verbs: `'fetch'`, `'update'`, `'create'`
+- Data types: `'task'`, `'project'`, `'prompt'`
+- Operations: `'read'`, `'write'`, `'list'`
+- Workflow: `'workflow'`, `'automation'`, `'sequence'`
 
-#### `tags` (optional)
+#### `usage`
+Practical guidance on when to use the tool (1-2 sentences).
 
-Array of 2-5 relevant keywords for indexing and search. Include:
-
-- Domain tag (matches category): `task`, `project`
-- Action tag: `fetch`, `update`, `list`, `start`
-- Data type tags: `status`, `knowledge`, `diagram`
-- Operation type: `read`, `write`
-
-**Examples:**
+**Example:**
 ```typescript
-// get_task
-tags: ['task', 'fetch', 'details', 'read']
-
-// update_project
-tags: ['project', 'update', 'knowledge', 'diagram', 'mermaid', 'write']
-
-// list_tasks
-tags: ['task', 'list', 'project', 'status', 'read']
+usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work on a task'
 ```
 
-#### `usage` (optional)
+#### `priority`
+Visibility and importance level.
 
-Short guidance on when to use this tool. Should align with the "when" part of the description but be more concise.
+- `'primary'` - Common user-facing tools
+- `'advanced'` - Specialized or less frequent use
+- `'internal'` - Development/debugging tools
 
-**Examples:**
-```typescript
-usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work'
+## Complete Example
 
-usage: 'Use after completing a task to automatically find and transition to the next task in the project workflow'
-```
-
-#### `priority` (optional)
-
-Visibility/importance hint:
-
-- **`primary`** - Core user-facing tools (most tools should be primary)
-- **`advanced`** - Less frequently used or power-user tools
-- **`internal`** - Internal/debugging tools
-
-For coderide-mcp, all 9 tools are marked as `primary`.
-
-## Complete Tool Example
-
-Here's a complete example of a well-structured tool:
+Here's a complete tool implementation following all guidelines:
 
 ```typescript
 import { z } from 'zod';
@@ -200,7 +208,9 @@ import { SecureApiClient } from '../utils/secure-api-client.js';
  */
 const GetTaskSchema = z.object({
   number: z.string()
-    .regex(/^[A-Za-z]{3}-\d+$/, { message: "Task number must be in the format ABC-123" })
+    .regex(/^[A-Za-z]{3}-\d+$/, {
+      message: "Task number must be in the format ABC-123 (e.g., CRD-1 or crd-1). Case insensitive."
+    })
     .describe("Task number identifier (e.g., 'CRD-1')"),
 }).strict();
 
@@ -211,17 +221,21 @@ type GetTaskInput = z.infer<typeof GetTaskSchema>;
  */
 export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   readonly name = 'get_task';
+
   readonly description = "Retrieves detailed information for a specific task using its unique task number (e.g., 'CRD-1'). Use this when you need to understand task requirements, check current status, or gather context before starting work on a task.";
+
   readonly zodSchema = GetTaskSchema;
+
   readonly annotations: ToolAnnotations = {
     title: "Get Task",
     readOnlyHint: true,
     openWorldHint: true,
   };
+
   readonly metadata = {
     category: 'task' as const,
     tags: ['task', 'fetch', 'details', 'read'],
-    usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work',
+    usage: 'Use when you need to understand task requirements, check current status, or gather context before starting work on a task',
     priority: 'primary' as const
   };
 
@@ -234,7 +248,7 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
       name: this.name,
       description: this.description,
       annotations: this.annotations,
-      metadata: this.metadata, // IMPORTANT: Include metadata in definition
+      metadata: this.metadata,
       inputSchema: {
         type: "object",
         properties: {
@@ -251,68 +265,91 @@ export class GetTaskTool extends BaseTool<typeof GetTaskSchema> {
   }
 
   async execute(input: GetTaskInput): Promise<unknown> {
-    // Implementation here
-    return {};
+    // Implementation details...
   }
 }
 ```
 
-## Adding a New Tool
+## Recommended Category Values
 
-Follow these steps to add a new tool:
+Based on the current CodeRide MCP tool set:
 
-1. **Create the tool file** in `src/tools/your-tool.ts`
-2. **Define the Zod schema** with descriptive property names and `.describe()` calls
-3. **Implement the tool class** extending `BaseTool`
-4. **Add metadata** with category, tags, usage, and priority
-5. **Implement `getMCPToolDefinition()`** including `metadata: this.metadata`
-6. **Implement `execute()`** with your tool logic
-7. **Register the tool** in `src/index.ts` by adding it to the tools array
-8. **Test the tool** using the MCP inspector or integration tests
+| Category | Use Case | Example Tools |
+|----------|----------|---------------|
+| `task` | Task-level operations | get_task, update_task, get_prompt, list_tasks, next_task |
+| `project` | Project-level operations | get_project, update_project, start_project, list_projects |
+
+For other MCP servers, consider these additional categories:
+- `code-edit` - Code editing, refactoring, formatting
+- `testing` - Running tests, generating tests
+- `navigation` - File tree, project structure, search
+- `repo` - Git operations, branches
+- `ai-assist` - AI-assisted code generation/manipulation
+
+## Testing Your Tool
+
+Before submitting a new tool, verify:
+
+### 1. Compilation Test
+```bash
+cd /Users/federiconeri/github/coderide-mcp
+npm run build
+```
+
+### 2. Type Check
+```bash
+npx tsc --noEmit
+```
+
+### 3. Tool Registration
+Ensure your tool is registered in `src/index.ts`:
+
+```typescript
+const tools: MCPToolDefinition[] = [
+  // ... existing tools
+  new YourNewTool(apiClient).getMCPToolDefinition(),
+];
+```
+
+### 4. Manual Testing
+Use the MCP Inspector or your preferred MCP client to:
+- [ ] Verify tool appears in tool list
+- [ ] Test with valid inputs
+- [ ] Test with invalid inputs (validation)
+- [ ] Verify error messages are helpful
+- [ ] Check that metadata is exposed correctly
+
+### 5. Documentation
+- [ ] Tool is listed in README.md with example
+- [ ] Input schema is documented
+- [ ] Example use cases are provided
 
 ## Backwards Compatibility
 
-All metadata fields are **optional** to maintain backwards compatibility:
+All metadata fields are **optional**. This ensures:
 
-- Tools without metadata continue to work normally
-- Clients that don't support metadata ignore the field
-- No changes to tool invocation or runtime behavior
-- Input/output schemas remain unchanged
+- ✅ Existing tools work without modification
+- ✅ Clients ignoring metadata continue to function
+- ✅ No breaking changes to tool invocation
+- ✅ Gradual adoption of metadata across tools
 
-## Tool Search Alignment
+When adding new tools or updating existing ones, metadata is **recommended but not required**.
 
-This metadata structure aligns with Anthropic's tool search best practices:
+## Best Practices Summary
 
-- **Descriptive names** help clients match user intent to tools
-- **Rich descriptions** provide context for search engines
-- **Detailed schemas** enable argument-based matching
-- **Metadata tags** improve indexing and filtering
-- **Category grouping** aids organization and discovery
+1. **Naming**: Use `action_target` pattern with clear, descriptive names
+2. **Description**: Follow "what + when" pattern (1-2 sentences)
+3. **Properties**: Use semantic names with detailed descriptions
+4. **Metadata**: Add category, tags, usage, and priority for discoverability
+5. **Testing**: Verify compilation, type safety, and runtime behavior
+6. **Documentation**: Update README.md with examples and use cases
 
-While coderide-mcp doesn't implement server-side tool search, following these practices ensures tools are ready for clients that do support advanced tool discovery features.
+## Questions or Issues?
 
-## Recommended Category Values
+- Review existing tools in `src/tools/` for examples
+- Check the [MCP specification](https://modelcontextprotocol.io/) for protocol details
+- Open an issue if you need clarification on guidelines
 
-Based on the spec and current tool set:
+---
 
-| Category | Usage |
-|----------|-------|
-| `project` | Project-level operations (get_project, update_project, start_project, list_projects) |
-| `task` | Task-level operations (get_task, update_task, get_prompt, list_tasks, next_task) |
-
-Other potential categories for different MCP servers:
-
-| Category | Usage |
-|----------|-------|
-| `code-edit` | Code editing, refactoring, formatting |
-| `testing` | Running tests, generating tests |
-| `navigation` | File tree, project structure, code search |
-| `repo` | Git operations, branches, commits |
-| `ai-assist` | AI-assisted code generation/manipulation |
-
-## References
-
-- [Tool Search Tool Specification](../.ralph/specs/tool-search-tool.md) - Detailed requirements
-- [Implementation Plan](../.ralph/specs/tool-search-tool-implementation-plan.md) - Development phases
-- [Anthropic's MCP Documentation](https://modelcontextprotocol.io/) - Official MCP guide
-- [BaseTool Source](../src/utils/base-tool.ts) - Base class implementation
+*This guide reflects the tool search alignment implementation completed in 2026-01-31, based on Anthropic's tool search best practices.*

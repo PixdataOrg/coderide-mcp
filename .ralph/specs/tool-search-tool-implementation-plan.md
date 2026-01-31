@@ -156,17 +156,19 @@ This plan aligns coderide-mcp's tool definitions with Anthropic's tool search to
   - priority: `primary`
   - **Done**: Included in Phase 5 commit
 
-### Phase 6: Documentation - [complexity: M]
+### Phase 6: Documentation - [complexity: M] ✅ COMPLETED
 
-- [ ] FR8-1: Create `docs/tools.md` with tool contribution guide
+- [x] FR8-1: Create `docs/tools.md` with tool contribution guide
   - Naming convention
   - Description guidelines (what + when)
   - Metadata field reference
   - Complete example with metadata
   - List of recommended category values
+  - **Done**: Commit 9f4a2ab
 
-- [ ] FR8-2: Update README.md to link to new documentation
+- [x] FR8-2: Update README.md to link to new documentation
   - Add developer section pointing to docs/tools.md
+  - **Done**: Commit 9f4a2ab
 
 ### Phase 7: Tests - [complexity: M]
 
@@ -272,3 +274,19 @@ The spec suggests `domain_action_target` but current names like `get_task` alrea
 - All changes are additive only - maintains backward compatibility
 - TypeScript compilation and build passing
 - FR5-1 through FR5-9: All completed
+
+### Phase 6: Documentation - Commit 9f4a2ab
+- Created comprehensive `docs/tools.md` with 11KB of tool development guidance
+- Documentation includes:
+  - Tool naming convention (action_target pattern with examples)
+  - Description guidelines (what + when format with concrete examples)
+  - Input schema requirements (property naming, descriptions with examples)
+  - Complete metadata field reference (category, tags, usage, priority)
+  - Full working example showing all best practices
+  - Recommended category values table
+  - Step-by-step guide for adding new tools
+- Updated README.md with new "For Contributors & Developers" section
+- Added direct link to docs/tools.md from README
+- Documentation provides foundation for contributors to maintain consistency
+- TypeScript compilation and build passing
+- FR8-1 and FR8-2: Both completed
