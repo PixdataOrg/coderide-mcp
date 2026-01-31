@@ -14,6 +14,9 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 - [2026-01-31] [tool-search-tool] When adding metadata to multiple tools, verify both the property declaration AND the getMCPToolDefinition() method includes it - both are needed for full MCP compatibility
 - [2026-01-31] [tool-search-tool] Documentation pattern for contributor guides: include naming conventions, description guidelines, complete examples, and field references - comprehensive docs prevent inconsistencies and enable confident contributions
 - [2026-01-31] [tool-search-tool] When files are gitignored (like docs/), use `git add -f <file>` to force-add specific files that should be tracked - allows selective tracking within ignored directories
+- [2026-01-31] [tool-search-tool] Verification scripts (like list-tools.ts) provide immediate feedback on implementation quality and help catch inconsistencies early - create them as part of the feature, not as an afterthought
+- [2026-01-31] [tool-search-tool] ANSI color codes in terminal output make verification scripts much more readable - use colors to emphasize important information (bright for headings, colors for categories/priorities)
+- [2026-01-31] [tool-search-tool] Summary statistics (e.g., "9/9 tools with metadata = 100%") provide quick validation that implementation is complete - always include coverage metrics in verification output
 
 ## Anti-Patterns (What to Avoid)
 
@@ -26,6 +29,7 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 ## Tool Usage
 
 <!-- Tips for using MCP tools and CLI -->
+- [2026-01-31] [tool-search-tool] Use `npx tsx scripts/script-name.ts` to run TypeScript scripts directly without compilation - great for verification and utility scripts that don't need to be in the build output
 
 ## Codebase Conventions
 
