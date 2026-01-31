@@ -205,7 +205,7 @@ The spec suggests `domain_action_target` but current names like `get_task` alrea
 - All fields optional to maintain backwards compatibility
 - TypeScript compilation and build passing
 
-### Phase 2: Tool Naming Audit - Completed 2026-01-31
+### Phase 2: Tool Naming Audit - Commit 99c3640
 - Audited all 9 tools against naming convention
 - Decision: Keep current `action_target` pattern (non-breaking, clear, consistent)
 - Documented in `.ralph/tool-naming-audit.md`
