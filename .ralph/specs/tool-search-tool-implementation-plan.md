@@ -57,17 +57,26 @@ This plan aligns coderide-mcp's tool definitions with Anthropic's tool search to
   - Justification: Non-breaking, clear, consistent, spec-aligned via metadata
   - **Done**: Documented in .ralph/tool-naming-audit.md
 
-### Phase 3: Description Enhancement - [complexity: M]
+### Phase 3: Description Enhancement - [complexity: M] ✅ COMPLETED
 
-- [ ] FR3-1: Enhance `get_task` description with "what + when"
-- [ ] FR3-2: Enhance `update_task` description with "what + when"
-- [ ] FR3-3: Enhance `get_project` description with "what + when"
-- [ ] FR3-4: Enhance `update_project` description with "what + when"
-- [ ] FR3-5: Enhance `get_prompt` description with "what + when"
-- [ ] FR3-6: Enhance `start_project` description with "what + when"
-- [ ] FR3-7: Enhance `list_projects` description with "what + when"
-- [ ] FR3-8: Enhance `list_tasks` description with "what + when"
-- [ ] FR3-9: Enhance `next_task` description with "what + when"
+- [x] FR3-1: Enhance `get_task` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-2: Enhance `update_task` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-3: Enhance `get_project` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-4: Enhance `update_project` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-5: Enhance `get_prompt` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-6: Enhance `start_project` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-7: Enhance `list_projects` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-8: Enhance `list_tasks` description with "what + when"
+  - **Done**: Commit 14b12ee
+- [x] FR3-9: Enhance `next_task` description with "what + when"
+  - **Done**: Commit 14b12ee
 
 ### Phase 4: Input Schema Improvement - [complexity: M]
 
@@ -211,3 +220,11 @@ The spec suggests `domain_action_target` but current names like `get_task` alrea
 - Documented in `.ralph/tool-naming-audit.md`
 - Justification: Use `metadata.category` for domain grouping instead of renaming tools
 - No code changes required - documentation only phase
+
+### Phase 3: Description Enhancement - Commit 14b12ee
+- Enhanced all 9 tool descriptions with "what + when" pattern per FR3 spec requirements
+- Each tool description now explains both what it does and when to use it
+- Changes made to: get_task, update_task, get_project, update_project, get_prompt, start_project, list_projects, list_tasks, next_task
+- All descriptions follow consistent pattern: concise "what" statement + practical "when" guidance
+- TypeScript compilation and build passing
+- No breaking changes - descriptions are backward compatible
