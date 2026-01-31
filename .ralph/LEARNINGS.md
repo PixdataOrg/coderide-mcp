@@ -25,7 +25,7 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 ## Anti-Patterns (What to Avoid)
 
 <!-- Add mistakes and issues to avoid -->
-- [YYYY-MM-DD] [feature] Anti-pattern description
+- [2026-01-31] [tool-search-tool] Spec verification process: Create dedicated test files for each acceptance criterion during implementation, not after - makes verification trivial and provides regression protection
 
 ### E2E Pitfalls
 <!-- E2E testing specific issues -->

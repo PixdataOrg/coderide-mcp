@@ -54,4 +54,4 @@ SPDX-License-Identifier: Proprietary
 
 | Spec | Status | Last Updated | Implementation Plan |
 |------|--------|--------------|---------------------|
-| (Your specs will appear here) | Planned | YYYY-MM-DD | - |
+| [tool-search-tool](tool-search-tool.md) | Completed | 2026-01-31 | [tool-search-tool-implementation-plan.md](tool-search-tool-implementation-plan.md) |
