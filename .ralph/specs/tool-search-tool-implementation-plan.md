@@ -259,7 +259,7 @@ The spec suggests `domain_action_target` but current names like `get_task` alrea
 - All changes are additive only - maintains backward compatibility
 - TypeScript compilation and build passing
 
-### Phase 5: Add Metadata to All Tools - Commit [PENDING]
+### Phase 5: Add Metadata to All Tools - Commit 4c4ee03
 - Added `metadata` property to all 9 MCP tools with complete categorization and tags
 - Each tool now includes:
   - category: 'task' or 'project' based on tool domain

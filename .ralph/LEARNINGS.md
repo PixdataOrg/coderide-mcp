@@ -10,6 +10,8 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 - [2026-01-31] [tool-search-tool] Tool description pattern: "what it does" + "when to use it" makes tools more discoverable and helps users understand appropriate usage contexts
 - [2026-01-31] [tool-search-tool] Property descriptions should include: format specs, constraint details, usage guidance, and relationship context - makes tools self-documenting and easier to discover
 - [2026-01-31] [tool-search-tool] Use concrete examples in property descriptions (e.g., 'ABC-123' instead of just 'task number') - helps users understand expected format immediately
+- [2026-01-31] [tool-search-tool] Metadata pattern for tool discoverability: category (domain grouping), tags (searchable keywords), usage (when to use), priority (importance level) - enables tool search alignment without breaking changes
+- [2026-01-31] [tool-search-tool] When adding metadata to multiple tools, verify both the property declaration AND the getMCPToolDefinition() method includes it - both are needed for full MCP compatibility
 
 ## Anti-Patterns (What to Avoid)
 
