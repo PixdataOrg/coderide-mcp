@@ -17,6 +17,10 @@ Accumulated knowledge from feature implementations. Reference before starting ne
 - [2026-01-31] [tool-search-tool] Verification scripts (like list-tools.ts) provide immediate feedback on implementation quality and help catch inconsistencies early - create them as part of the feature, not as an afterthought
 - [2026-01-31] [tool-search-tool] ANSI color codes in terminal output make verification scripts much more readable - use colors to emphasize important information (bright for headings, colors for categories/priorities)
 - [2026-01-31] [tool-search-tool] Summary statistics (e.g., "9/9 tools with metadata = 100%") provide quick validation that implementation is complete - always include coverage metrics in verification output
+- [2026-01-31] [tool-search-tool] Comprehensive test suites should be structured as independent test files that can run standalone - makes debugging easier and allows selective test execution
+- [2026-01-31] [tool-search-tool] Test files using plain JavaScript (not TypeScript) can import from compiled dist/ folder - simpler setup, no test-specific build configuration needed
+- [2026-01-31] [tool-search-tool] Test pattern: each test file should have clear test numbering (Test 1.1, 1.2, etc.) and summary output - makes it easy to identify which specific assertion failed
+- [2026-01-31] [tool-search-tool] When test directories are gitignored, use `git add -f test/specific-file.js` to selectively track important test files - allows excluding temporary test files while keeping core test suite in version control
 
 ## Anti-Patterns (What to Avoid)
 
