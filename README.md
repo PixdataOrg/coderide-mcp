@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/pixdataorg-coderide-mcp-badge.png)](https://mseep.ai/app/pixdataorg-coderide-mcp)
+
 # Supercharge Your AI Assistant or IDE with CodeRide Task Management
 
 [![npm version](https://img.shields.io/npm/v/@coderide/mcp.svg)](https://www.npmjs.com/package/@coderide/mcp)
