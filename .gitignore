@@ -43,3 +43,10 @@ CLAUDE.md
 .claude
 .github
 AGENTS.md
+
+#Ralph
+/.ralph
+.ralph.config.cjs
+.ralph.config.js
+.ralph.config.cjs.backup-*
+.ralph.config.js.backup-*
