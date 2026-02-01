@@ -50,3 +50,5 @@ AGENTS.md
 .ralph.config.js
 .ralph.config.cjs.backup-*
 .ralph.config.js.backup-*
+ralph.config.cjs
+ralph.config.js
